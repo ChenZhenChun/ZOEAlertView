@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.0.2"
+s.version           = "1.0.3"
 s.summary           = "a ZOEAlertView for ios."
 s.description       = <<-DESC
 修复message不能居中及message内容过多时操作按钮渲染在屏幕外无法点击的bug。
