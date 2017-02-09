@@ -138,7 +138,15 @@ static NSMutableArray *alertViewArray;
             }
             _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,0);
             [_messageLabel sizeToFit];
-            _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,_messageLabel.frame.size.height);
+            if (_messageLabel.frame.size.height>self.frame.size.height-200) {
+                _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,self.frame.size.height-200);
+            }else {
+                _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,_messageLabel.frame.size.height);
+            }
+            //使用sizeToFit之后对齐方式失效，
+            _messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+            _messageLabel.textAlignment = NSTextAlignmentCenter;
+            
             alertViewH += 28*self.scale+_messageLabel.frame.size.height;
         }
         _line1.frame = CGRectMake(0,alertViewH-kBtnH,kalertViewW,0.5);
@@ -211,7 +219,7 @@ static NSMutableArray *alertViewArray;
         _titleLabel = [[UILabel alloc]init];
         _titleLabel.backgroundColor = [UIColor clearColor];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
-        _titleLabel.font = [UIFont systemFontOfSize:self.titleFontSize];
+        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
         _titleLabel.textColor = self.titleTextColor;
     }
     return _titleLabel;
@@ -221,8 +229,7 @@ static NSMutableArray *alertViewArray;
     if (!_messageLabel) {
         _messageLabel = [[UILabel alloc]init];
         _messageLabel.backgroundColor = [UIColor clearColor];
-        _messageLabel.textAlignment = NSTextAlignmentCenter;
-        _messageLabel.font = [UIFont systemFontOfSize:self.messageFontSize];
+        _messageLabel.font = [UIFont systemFontOfSize:_messageFontSize];
         _messageLabel.numberOfLines = 0;
         _messageLabel.textColor = self.messageTextColor;
     }
@@ -233,7 +240,7 @@ static NSMutableArray *alertViewArray;
     if (!_leftBtn) {
         _leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         [_leftBtn setTitleColor:self.cancelButtonTextColor forState:UIControlStateNormal];
-        [_leftBtn.titleLabel setFont:[UIFont systemFontOfSize:self.buttonFontSize]];
+        [_leftBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
         _leftBtn.tag = _cancelButtonIndex;
         _leftBtn.backgroundColor = [UIColor clearColor];
         [_leftBtn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
@@ -244,7 +251,7 @@ static NSMutableArray *alertViewArray;
 - (UIButton *)rightBtn {
     if (!_rightBtn) {
         _rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_rightBtn.titleLabel setFont:[UIFont systemFontOfSize:self.buttonFontSize]];
+        [_rightBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
         [_rightBtn setTitleColor:self.oKButtonTitleTextColor forState:UIControlStateNormal];
         _rightBtn.tag = _okButtonIndex;
         _rightBtn.backgroundColor = [UIColor clearColor];
