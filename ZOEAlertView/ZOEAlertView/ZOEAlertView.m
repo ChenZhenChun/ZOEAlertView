@@ -67,14 +67,7 @@ static NSMutableArray *alertViewArray;
         _oKButtonTitleTextColor = koKButtonTitleTextColor;
         _cancelButtonIndex = 0;
         _okButtonIndex = 1;
-        
-        //将alertView存储在静态数组中
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            alertViewArray = [[NSMutableArray alloc]init];
-        });
-        [alertViewArray addObject:self];
-        
+
         //添加子控件
         [self addSubview:self.alertContentView];
         [self.alertContentView addSubview:self.line1];
@@ -111,6 +104,13 @@ static NSMutableArray *alertViewArray;
 - (void)showWithBlock:(void (^)(NSInteger))Block {
     _MyBlock = Block;
     if (_leftBtn || _rightBtn) {
+        //将alertView存储在静态数组中
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            alertViewArray = [[NSMutableArray alloc]init];
+        });
+        [alertViewArray addObject:self];
+        
         [self configFrame];
         UIWindow *window = [UIApplication sharedApplication].keyWindow;
         [window addSubview:self];
