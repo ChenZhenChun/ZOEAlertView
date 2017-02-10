@@ -109,12 +109,23 @@ static NSMutableArray *alertViewArray;
         dispatch_once(&onceToken, ^{
             alertViewArray = [[NSMutableArray alloc]init];
         });
+        
+        //如果alertView重复调用show方法，先将数组中原来的对象删除，然后继续添加到数组的最后面，
+        for (ZOEAlertView *alertVeiw in alertViewArray) {
+            if (alertVeiw == self) {
+                alertVeiw.hidden = NO;
+                [alertViewArray removeObject:alertVeiw];
+                break;
+            }
+        }
         [alertViewArray addObject:self];
         
         [self configFrame];
         UIWindow *window = [UIApplication sharedApplication].keyWindow;
         [window addSubview:self];
         [window endEditing:YES];
+        
+        //有新的alertView被展现，所以要将前一个alertView暂时隐藏
         if (alertViewArray.count-1>0) {
             ZOEAlertView *alertView = alertViewArray[alertViewArray.count-2];
             alertView.hidden = YES;
@@ -177,10 +188,14 @@ static NSMutableArray *alertViewArray;
 //重写父类方法(移除当前ZOEAlertView的同时将上一个ZOEAlertView显示出来)
 - (void)removeFromSuperview {
     [super removeFromSuperview];
-    if (alertViewArray.count>0) {
-        ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
-        [alertViewArray removeObject:alertView];
+    //有可能不是按照数组倒序的顺序移除，所以需要遍历数组
+    for (ZOEAlertView *alertVeiw in alertViewArray) {
+        if (alertVeiw == self) {
+            [alertViewArray removeObject:alertVeiw];
+            break;
+        }
     }
+    //将数组的最后一个alertView显示出来
     if (alertViewArray.count>0) {
         ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
         alertView.hidden = NO;
