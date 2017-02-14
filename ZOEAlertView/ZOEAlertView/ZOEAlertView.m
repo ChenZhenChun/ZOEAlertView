@@ -65,6 +65,7 @@ static NSMutableArray *alertViewArray;
         _messageTextColor       = kmessageTextColor;
         _cancelButtonTextColor  = kcancelButtonTextColor;
         _oKButtonTitleTextColor = koKButtonTitleTextColor;
+        _messageTextAlignment   = NSTextAlignmentCenter;
         _cancelButtonIndex = 0;
         _okButtonIndex = 1;
 
@@ -156,7 +157,7 @@ static NSMutableArray *alertViewArray;
             }
             //使用sizeToFit之后对齐方式失效，
             _messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-            _messageLabel.textAlignment = NSTextAlignmentCenter;
+            _messageLabel.textAlignment = _messageTextAlignment;
             
             alertViewH += 28*self.scale+_messageLabel.frame.size.height;
         }
@@ -369,6 +370,9 @@ static NSMutableArray *alertViewArray;
     }
 }
 
-
+- (void)setMessageTextAlignment:(NSTextAlignment)messageTextAlignment {
+    _messageTextAlignment = messageTextAlignment;
+    [self configFrame];
+}
 
 @end
