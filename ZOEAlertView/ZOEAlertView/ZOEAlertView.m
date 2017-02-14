@@ -36,6 +36,7 @@ static NSMutableArray *alertViewArray;
 @property (nonatomic)        CGFloat        scale;
 @property (nonatomic,copy) void(^MyBlock)(NSInteger buttonIndex);
 @property (nonatomic,strong) NSMutableParagraphStyle *paragraphStyle;
+@property (nonatomic,strong) NSMutableAttributedString *attrStr;
 
 @end
 
@@ -80,11 +81,8 @@ static NSMutableArray *alertViewArray;
         //添加消息详细Label
         if (message&&message.length>0) {
             [self.alertContentView addSubview:self.messageLabel];
-            NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc]initWithString:message];
-            //调整行间距
-            self.paragraphStyle.lineSpacing = self.lineSpacing*self.scale;
-            [attrStr addAttribute:NSParagraphStyleAttributeName value:_paragraphStyle range:NSMakeRange(0, attrStr.string.length)];
-            self.messageLabel.attributedText = attrStr;
+            [self messageLabel];
+            [self attrStrWithMessage:message];
         }
         
         //添加左边的按钮（取消按钮）
@@ -149,7 +147,9 @@ static NSMutableArray *alertViewArray;
                 y = (21+_titleLabel.font.pointSize+28)*self.scale;
             }
             _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,0);
+            [self attrStrWithMessage:_messageLabel.text];
             [_messageLabel sizeToFit];
+            
             if (_messageLabel.frame.size.height>self.frame.size.height-200) {
                 _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,self.frame.size.height-200);
             }else {
@@ -158,6 +158,7 @@ static NSMutableArray *alertViewArray;
             //使用sizeToFit之后对齐方式失效，
             _messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
             _messageLabel.textAlignment = _messageTextAlignment;
+            
             
             alertViewH += 28*self.scale+_messageLabel.frame.size.height;
         }
@@ -306,11 +307,22 @@ static NSMutableArray *alertViewArray;
     return _paragraphStyle;
 }
 
+- (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message {
+    if (!_attrStr) {
+        _attrStr = [[NSMutableAttributedString alloc]initWithString:message];
+    }
+    //调整行间距
+    self.paragraphStyle.lineSpacing = _lineSpacing;
+    [_attrStr addAttribute:NSParagraphStyleAttributeName value:_paragraphStyle range:NSMakeRange(0,_attrStr.string.length)];
+    _messageLabel.attributedText = _attrStr;
+    return _attrStr;
+}
+
 #pragma mark - setter方法设置属性
 //行高设置
 - (void)setLineSpacing:(CGFloat)lineSpacing {
     _lineSpacing = lineSpacing;
-    self.paragraphStyle.lineSpacing = _lineSpacing*self.scale;
+    _paragraphStyle.lineSpacing = _lineSpacing*self.scale;
     [self configFrame];
 }
 
