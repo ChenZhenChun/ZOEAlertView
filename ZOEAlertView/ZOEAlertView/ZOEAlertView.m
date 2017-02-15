@@ -24,19 +24,21 @@
 #define koKButtonTitleTextColor     [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
 
 
-static NSMutableArray *alertViewArray;
+static NSMutableArray                                   *alertViewArray;
+static UIWindow                                         *alertWindow;
 @interface ZOEAlertView()
-@property (nonatomic,strong) UIView         *alertContentView;
-@property (nonatomic,strong) UILabel        *titleLabel;
-@property (nonatomic,strong) UILabel        *messageLabel;
-@property (nonatomic,strong) UIView         *line1;
-@property (nonatomic,strong) UIView         *line2;
-@property (nonatomic,strong) UIButton       *leftBtn;
-@property (nonatomic,strong) UIButton       *rightBtn;
-@property (nonatomic)        CGFloat        scale;
+@property (nonatomic,strong) UIView                     *alertContentView;
+@property (nonatomic,strong) UILabel                    *titleLabel;
+@property (nonatomic,strong) UILabel                    *messageLabel;
+@property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
+@property (nonatomic,strong) NSMutableAttributedString  *attrStr;
+@property (nonatomic,strong) UIView                     *line1;
+@property (nonatomic,strong) UIView                     *line2;
+@property (nonatomic,strong) UIButton                   *leftBtn;
+@property (nonatomic,strong) UIButton                   *rightBtn;
+
+@property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,copy) void(^MyBlock)(NSInteger buttonIndex);
-@property (nonatomic,strong) NSMutableParagraphStyle *paragraphStyle;
-@property (nonatomic,strong) NSMutableAttributedString *attrStr;
 
 @end
 
@@ -56,7 +58,7 @@ static NSMutableArray *alertViewArray;
     self = [super init];
     if (self) {
         //默认参数初始化
-        self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.7];
+        self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
         self.frame              = [UIScreen mainScreen].bounds;
         _lineSpacing            = klineSpacing;
         _titleFontSize          = ktitleFontSize;
@@ -69,7 +71,7 @@ static NSMutableArray *alertViewArray;
         _messageTextAlignment   = NSTextAlignmentCenter;
         _cancelButtonIndex = 0;
         _okButtonIndex = 1;
-
+        
         //添加子控件
         [self addSubview:self.alertContentView];
         [self.alertContentView addSubview:self.line1];
@@ -118,10 +120,21 @@ static NSMutableArray *alertViewArray;
             }
         }
         [alertViewArray addObject:self];
-        
         [self configFrame];
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        [window addSubview:self];
+        //将alertView单独放在alertWindow中，确保alertView的父容器（window）不受外界干扰。
+        static dispatch_once_t onceToken2;
+        dispatch_once(&onceToken2, ^{
+            alertWindow = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
+            alertWindow.windowLevel = UIWindowLevelAlert;
+            alertWindow.backgroundColor = [UIColor clearColor];
+        });
+        alertWindow.hidden = NO;
+        [alertWindow addSubview:self];
+        [alertWindow makeKeyAndVisible];
+        
+        //获取系统delegate创建的window，将delegate window 转变回keyWindow，这样确保在外部调用keyWindow时都是系统创建的那个window。
+        UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
+        [window makeKeyAndVisible];
         [window endEditing:YES];
         
         //有新的alertView被展现，所以要将前一个alertView暂时隐藏
@@ -201,6 +214,11 @@ static NSMutableArray *alertViewArray;
     if (alertViewArray.count>0) {
         ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
         alertView.hidden = NO;
+    }
+    
+    //当数组中没有alertView时将父容器隐藏。
+    if (!alertViewArray.count) {
+        alertWindow.hidden = YES;
     }
 }
 
@@ -371,7 +389,7 @@ static NSMutableArray *alertViewArray;
 - (void)setCancelButtonTextColor:(UIColor *)cancelButtonTextColor {
     if (_leftBtn) {
         _cancelButtonTextColor = cancelButtonTextColor;
-       [_leftBtn setTitleColor:_cancelButtonTextColor forState:UIControlStateNormal];
+        [_leftBtn setTitleColor:_cancelButtonTextColor forState:UIControlStateNormal];
     }
 }
 
@@ -386,5 +404,6 @@ static NSMutableArray *alertViewArray;
     _messageTextAlignment = messageTextAlignment;
     [self configFrame];
 }
+
 
 @end

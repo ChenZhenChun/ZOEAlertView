@@ -3,8 +3,8 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.0.7"
-s.summary           = "添加 messageTextAlignment 属性"
+s.version           = "1.0.8"
+s.summary           = "使用自定义window作为容器加载ZOEAlertView，与系统创建的window分开。"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
 DESC
