@@ -3,8 +3,8 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.0.8"
-s.summary           = "使用自定义window作为容器加载ZOEAlertView，与系统创建的window分开。"
+s.version           = "1.0.9"
+s.summary           = "初始化控件改成不定参数个数，同步UIAlertView，支持对指定button设置文字颜色"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
 DESC

@@ -16,14 +16,12 @@
 @property (nonatomic)        CGFloat            buttonFontSize;//uibutton font size,default is 18.
 @property (nonatomic,strong) UIColor            *titleTextColor;
 @property (nonatomic,strong) UIColor            *messageTextColor;
-@property (nonatomic,strong) UIColor            *cancelButtonTextColor;
-@property (nonatomic,strong) UIColor            *oKButtonTitleTextColor;
+@property (nonatomic,strong) UIColor            *buttonTextColor;
 @property (nonatomic,readonly)NSInteger         cancelButtonIndex;
-@property (nonatomic,readonly)NSInteger         okButtonIndex;
 @property(nonatomic)         NSTextAlignment    messageTextAlignment;//messageLabel TextAlignment,default is NSTextAlignmentCenter
 
+- (instancetype)initWithTitle:(NSString*)title message:(NSString*)message cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
 
-- (instancetype)initWithTitle:(NSString *)title message:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle oKButtonTitle:(NSString *)okButtonTitle;
 
 - (void)showWithBlock:(void(^)(NSInteger buttonIndex))Block;
 
@@ -31,6 +29,15 @@
  移除当前的alertView（不会触发block回调）
  */
 - (void)dismissZOEAlertView;
+
+
+/**
+ 根据buttonIndex 设置button文字颜色
+
+ @param color  文字颜色
+ @param buttonIndex 按钮索引，cancelButtonIndex=0 otherButtonTitles以此类推
+ */
+- (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex;
 
 /**
  移除所有ZOEAlertView（不会触发block回调）

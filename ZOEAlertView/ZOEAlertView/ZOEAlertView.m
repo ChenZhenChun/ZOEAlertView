@@ -7,38 +7,39 @@
 //
 
 #import "ZOEAlertView.h"
-#import <objc/runtime.h>
+#import "MessageContentView.h"
 
-
-#define kBtnH (56*self.scale)
-#define kalertViewW (300*self.scale)
+#define kBtnH (56*_scale)
+#define kalertViewW (300*_scale)
+#define kBtnTagAppend 200  //tag从0开始容易和默认的tag冲突，所以额外累加一个参数
 
 //默认属性参数
-#define klineSpacing                (5*self.scale)
-#define ktitleFontSize              (18*self.scale)
-#define kmessageFontSize            (15*self.scale)
-#define kbuttonFontSize             (18*self.scale)
+#define klineSpacing                (5*_scale)
+#define ktitleFontSize              (18*_scale)
+#define kmessageFontSize            (15*_scale)
+#define kbuttonFontSize             (18*_scale)
 #define ktitleTextColor             [UIColor colorWithRed:34/255.0 green:34/255.0 blue:34/255.0 alpha:1]
 #define kmessageTextColor           [UIColor colorWithRed:34/255.0 green:34/255.0 blue:34/255.0 alpha:1]
-#define kcancelButtonTextColor      [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
+#define kbuttonTextColor            [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
 #define koKButtonTitleTextColor     [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
 
 
 static NSMutableArray                                   *alertViewArray;
 static UIWindow                                         *alertWindow;
 @interface ZOEAlertView()
+@property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *alertContentView;
 @property (nonatomic,strong) UILabel                    *titleLabel;
-@property (nonatomic,strong) UILabel                    *messageLabel;
-@property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
-@property (nonatomic,strong) NSMutableAttributedString  *attrStr;
-@property (nonatomic,strong) UIView                     *line1;
-@property (nonatomic,strong) UIView                     *line2;
-@property (nonatomic,strong) UIButton                   *leftBtn;
-@property (nonatomic,strong) UIButton                   *rightBtn;
+@property (nonatomic,strong) MessageContentView         *messageContentView;
+@property (nonatomic,strong) UIView                     *operationalView;
 
-@property (nonatomic)        CGFloat                    scale;
+@property (nonatomic,copy)   NSString                   *title;
+@property (nonatomic,copy)   NSString                   *message;
+@property (nonatomic,copy)   NSString                   *cancelButtonTitle;
+@property (nonatomic,strong) NSMutableArray             *otherButtonTitles;
 @property (nonatomic,copy) void(^MyBlock)(NSInteger buttonIndex);
+
+
 
 @end
 
@@ -49,68 +50,136 @@ static UIWindow                                         *alertWindow;
 @synthesize buttonFontSize          = _buttonFontSize;
 @synthesize titleTextColor          = _titleTextColor;
 @synthesize messageTextColor        = _messageTextColor;
-@synthesize cancelButtonTextColor   = _cancelButtonTextColor;
-@synthesize oKButtonTitleTextColor  = _oKButtonTitleTextColor;
-
+@synthesize buttonTextColor         = _buttonTextColor;
 
 //初始化
-- (instancetype)initWithTitle:(NSString *)title message:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle oKButtonTitle:(NSString *)okButtonTitle {
-    self = [super init];
+- (instancetype)initWithTitle:(NSString*)title message:(NSString*)message  cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ...
+{
+    self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
         //默认参数初始化
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
-        self.frame              = [UIScreen mainScreen].bounds;
+        [self scale];
         _lineSpacing            = klineSpacing;
         _titleFontSize          = ktitleFontSize;
         _messageFontSize        = kmessageFontSize;
         _buttonFontSize         = kbuttonFontSize;
         _titleTextColor         = ktitleTextColor;
         _messageTextColor       = kmessageTextColor;
-        _cancelButtonTextColor  = kcancelButtonTextColor;
-        _oKButtonTitleTextColor = koKButtonTitleTextColor;
+        _buttonTextColor  = kbuttonTextColor;
         _messageTextAlignment   = NSTextAlignmentCenter;
         _cancelButtonIndex = 0;
-        _okButtonIndex = 1;
+        _title = title;
+        _message = message;
+        _cancelButtonTitle = cancelButtonTitle;
         
-        //添加子控件
-        [self addSubview:self.alertContentView];
-        [self.alertContentView addSubview:self.line1];
-        //添加titleLabel
-        if (title&&title.length>0) {
-            [self.alertContentView addSubview:self.titleLabel];
-            self.titleLabel.text = title;
-        }
-        //添加消息详细Label
-        if (message&&message.length>0) {
-            [self.alertContentView addSubview:self.messageLabel];
-            [self messageLabel];
-            [self attrStrWithMessage:message];
-        }
-        
-        //添加左边的按钮（取消按钮）
-        if (cancelButtonTitle&&cancelButtonTitle.length>0) {
-            [self.alertContentView addSubview:self.leftBtn];
-            [self.leftBtn setTitle:cancelButtonTitle forState:UIControlStateNormal];
-        }
-        //添加游标的按钮（确定按钮）
-        if (okButtonTitle&&okButtonTitle.length>0) {
-            [self.alertContentView addSubview:self.rightBtn];
-            [self.rightBtn setTitle:okButtonTitle forState:UIControlStateNormal];
-        }
-    }
-    return self;
-}
-
-//展示控件
-- (void)showWithBlock:(void (^)(NSInteger))Block {
-    _MyBlock = Block;
-    if (_leftBtn || _rightBtn) {
         //将alertView存储在静态数组中
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             alertViewArray = [[NSMutableArray alloc]init];
         });
         
+        //将alertView单独放在alertWindow中，确保alertView的父容器（window）不受外界干扰。
+        static dispatch_once_t onceToken2;
+        dispatch_once(&onceToken2, ^{
+            alertWindow = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
+            alertWindow.windowLevel = UIWindowLevelAlert;
+            alertWindow.backgroundColor = [UIColor clearColor];
+            [alertWindow makeKeyAndVisible];
+            //获取系统delegate创建的window，将delegate window 转变回keyWindow，这样确保在外部调用keyWindow时都是系统创建的那个window。
+            UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
+            [window makeKeyAndVisible];
+        });
+        
+        
+        //添加子控件
+        [self addSubview:self.alertContentView];
+        //添加titleLabel
+        if (_title&&_title.length>0) {
+            [_alertContentView addSubview:self.titleLabel];
+            _titleLabel.text = _title;
+        }
+        //添加消息详细Label
+        if (_message&&_message.length>0) {
+            self.messageContentView.messageLabel.font = [UIFont systemFontOfSize:_messageFontSize];
+            self.messageContentView.messageLabel.textColor = _messageTextColor;
+            self.messageContentView.paragraphStyle.lineSpacing = _lineSpacing;
+            [self.messageContentView attrStrWithMessage:_message];
+            [self.messageContentView addSubview:self.messageContentView.messageLabel];
+            [_alertContentView addSubview:self.messageContentView];
+        }
+        
+        //取消按钮
+        if (_cancelButtonTitle&&_cancelButtonTitle.length>0) {
+            UIButton *cancelButton = [ZOEAlertView createButton];
+            [cancelButton setTitle:_cancelButtonTitle forState:UIControlStateNormal];
+            [cancelButton addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+            [cancelButton setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+            [cancelButton.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+            [self.otherButtonTitles addObject:cancelButton];
+        }
+        //添加other按钮
+        if (otherButtonTitles) {
+            UIButton *btn = [ZOEAlertView createButton];
+            [btn setTitle:otherButtonTitles forState:UIControlStateNormal];
+            [btn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+            [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+            [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+            [self.otherButtonTitles addObject:btn];
+            
+            va_list argList;  //定义一个 argList 指针来访问参数表
+            va_start(argList, otherButtonTitles);  //初始化 argList，让它指向第一个变参，otherButtonTitles 这里是第一个参数，虽然加了s,它不是数组。
+            id arg;
+            while ((arg = va_arg(argList, id))) //调用 argList 依次取出 参数，它会自带指向下一个参数
+            {
+                UIButton *btn1 = [ZOEAlertView createButton];
+                [btn1 setTitle:arg forState:UIControlStateNormal];
+                [btn1 setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+                [btn1.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+                [btn1 addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+                [self.otherButtonTitles addObject:btn1];
+            }
+            va_end(argList); // 收尾，记得关闭关闭 va_list
+        }
+        [self.alertContentView addSubview:self.operationalView];
+        //设置按钮索引、绘制分割线
+        int buttonIndex = (_cancelButtonTitle&&_cancelButtonTitle.length>0)?0:1;
+        if (_otherButtonTitles.count==2) {
+            for (int i=0; i<self.otherButtonTitles.count; i++) {
+                UIButton *btn = _otherButtonTitles[i];
+                btn.tag = kBtnTagAppend+buttonIndex++;
+                [self.operationalView addSubview:btn];
+            }
+            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0,kalertViewW,0.5)];
+            line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+            [self.operationalView addSubview:line];
+            UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(kalertViewW/2.0,0,0.5,kBtnH)];
+            line1.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+            [self.operationalView addSubview:line1];
+            
+        }else {
+            for (int i=0; i<self.otherButtonTitles.count; i++) {
+                UIButton *btn = _otherButtonTitles[i];
+                btn.tag = kBtnTagAppend+buttonIndex++;
+                [self.operationalView addSubview:btn];
+                UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0+i*kBtnH,kalertViewW,0.5)];
+                line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+                [self.operationalView addSubview:line];
+            }
+        }
+        //配置frame
+        [self configFrame];
+    }
+    
+    return self;
+}
+
+//展示控件
+- (void)showWithBlock:(void (^)(NSInteger))Block {
+    _MyBlock = Block;
+    if (self.otherButtonTitles.count) {
+        UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
+        [window endEditing:YES];
         //如果alertView重复调用show方法，先将数组中原来的对象删除，然后继续添加到数组的最后面，
         for (ZOEAlertView *alertVeiw in alertViewArray) {
             if (alertVeiw == self) {
@@ -120,72 +189,64 @@ static UIWindow                                         *alertWindow;
             }
         }
         [alertViewArray addObject:self];
-        [self configFrame];
-        //将alertView单独放在alertWindow中，确保alertView的父容器（window）不受外界干扰。
-        static dispatch_once_t onceToken2;
-        dispatch_once(&onceToken2, ^{
-            alertWindow = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
-            alertWindow.windowLevel = UIWindowLevelAlert;
-            alertWindow.backgroundColor = [UIColor clearColor];
-        });
-        alertWindow.hidden = NO;
         [alertWindow addSubview:self];
-        [alertWindow makeKeyAndVisible];
-        
-        //获取系统delegate创建的window，将delegate window 转变回keyWindow，这样确保在外部调用keyWindow时都是系统创建的那个window。
-        UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
-        [window makeKeyAndVisible];
-        [window endEditing:YES];
-        
+        alertWindow.hidden = NO;
         //有新的alertView被展现，所以要将前一个alertView暂时隐藏
         if (alertViewArray.count-1>0) {
             ZOEAlertView *alertView = alertViewArray[alertViewArray.count-2];
             alertView.hidden = YES;
         }
+    }else {
+        alertWindow.hidden = YES;
     }
 }
 
 //动态配置子控件的位置及大小
 - (void)configFrame {
     //必须至少有一个操作按钮才能展现控件
-    if (_leftBtn || _rightBtn) {
-        CGFloat alertViewH = kBtnH+21*self.scale;//底部按钮操作区域高度+21点的空白
+    if (self.otherButtonTitles.count) {
+        CGFloat allBtnH = _otherButtonTitles.count<3?kBtnH:kBtnH*_otherButtonTitles.count;
+        CGFloat alertViewH = allBtnH+21*_scale;//底部按钮操作区域高度+21点的空白
         if (_titleLabel) {
-            alertViewH += (21+_titleLabel.font.pointSize)*self.scale;
-            _titleLabel.frame = CGRectMake(15*self.scale,21*self.scale,kalertViewW-30*self.scale,_titleLabel.font.pointSize*self.scale);
+            alertViewH += (21+_titleLabel.font.pointSize)*_scale;
+            _titleLabel.frame = CGRectMake(15*_scale,21*_scale,kalertViewW-30*_scale,_titleLabel.font.pointSize*_scale);
         }
-        if (_messageLabel) {
-            CGFloat y = 28*self.scale;
+        if (_message&&_message.length>0) {
+            CGFloat y = 28*_scale;
+            alertViewH += 28*_scale;
             if (_titleLabel) {
-                y = (21+_titleLabel.font.pointSize+28)*self.scale;
+                y = (21+_titleLabel.font.pointSize+28)*_scale;
             }
-            _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,0);
-            [self attrStrWithMessage:_messageLabel.text];
-            [_messageLabel sizeToFit];
+            self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
+            self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
+            [self.messageContentView attrStrWithMessage:_message];
+            [self.messageContentView.messageLabel sizeToFit];
             
-            if (_messageLabel.frame.size.height>self.frame.size.height-200) {
-                _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,self.frame.size.height-200);
+            //alertViewH大于屏幕高度-300，那么对这个判断做等法判断出相等时messageContentView的高度
+            if (self.messageContentView.messageLabel.frame.size.height+alertViewH>self.frame.size.height-200*_scale) {
+                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
+                self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
             }else {
-                _messageLabel.frame = CGRectMake(28*self.scale,y,kalertViewW-56*self.scale,_messageLabel.frame.size.height);
+                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height);
+                self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
             }
             //使用sizeToFit之后对齐方式失效，
-            _messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-            _messageLabel.textAlignment = _messageTextAlignment;
-            
-            
-            alertViewH += 28*self.scale+_messageLabel.frame.size.height;
+            self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+            self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
+            alertViewH += self.messageContentView.frame.size.height;
         }
-        _line1.frame = CGRectMake(0,alertViewH-kBtnH,kalertViewW,0.5);
-        
-        //两个按钮的位置
-        if (_leftBtn&&_rightBtn) {
-            _leftBtn.frame = CGRectMake(0,alertViewH-kBtnH,kalertViewW/2.0,kBtnH);
-            [self.alertContentView addSubview:self.line2];
-            _line2.frame = CGRectMake(kalertViewW/2.0,alertViewH-kBtnH,0.5,kBtnH);
-            _rightBtn.frame = CGRectMake(kalertViewW/2.0,alertViewH-kBtnH,kalertViewW/2.0,kBtnH);
+        //按钮操作区位置设置
+        self.operationalView.frame = CGRectMake(0,alertViewH-allBtnH,kalertViewW,allBtnH);
+        if (_otherButtonTitles.count == 2) {
+            UIButton *btn = _otherButtonTitles[0];
+            UIButton *btn1 = _otherButtonTitles[1];
+            btn.frame = CGRectMake(0,0,kalertViewW/2.0,kBtnH);
+            btn1.frame = CGRectMake(kalertViewW/2.0,0,kalertViewW/2.0,kBtnH);
         }else {
-            UIButton *button = _leftBtn?_leftBtn:_rightBtn;
-            button.frame = CGRectMake(0,alertViewH-kBtnH,kalertViewW,kBtnH);
+            for (int i=0;i<_otherButtonTitles.count;i++) {
+                UIButton *btn = _otherButtonTitles[i];
+                btn.frame = CGRectMake(0,(_otherButtonTitles.count-1-i)*kBtnH,kalertViewW,kBtnH);
+            }
         }
         _alertContentView.frame = CGRectMake(0,0,kalertViewW,alertViewH);
         self.alertContentView.center = self.center;
@@ -195,7 +256,7 @@ static UIWindow                                         *alertWindow;
 //操作按钮点击事件
 - (void)clickButton:(UIButton *)sender {
     if (_MyBlock) {
-        _MyBlock(sender.tag);
+        _MyBlock(sender.tag-kBtnTagAppend);
     }
     [self removeFromSuperview];
 }
@@ -227,6 +288,13 @@ static UIWindow                                         *alertWindow;
     [self removeFromSuperview];
 }
 
+- (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex {
+    UIButton *btn = [self.operationalView viewWithTag:buttonIndex+kBtnTagAppend];
+    if (btn) {
+        [btn setTitleColor:color forState:UIControlStateNormal];
+    }
+}
+
 //移除所有ZOEAlertView（不会触发block回调）
 + (void)dismissAllZOEAlertView {
     while(alertViewArray.count) {
@@ -242,7 +310,7 @@ static UIWindow                                         *alertWindow;
     if (!_alertContentView) {
         _alertContentView = [[UIView alloc]init];
         _alertContentView.clipsToBounds = YES;
-        _alertContentView.layer.cornerRadius = 10*self.scale;
+        _alertContentView.layer.cornerRadius = 10*_scale;
         _alertContentView.backgroundColor = [UIColor whiteColor];
     }
     return _alertContentView;
@@ -255,61 +323,41 @@ static UIWindow                                         *alertWindow;
         _titleLabel.backgroundColor = [UIColor clearColor];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
         _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
-        _titleLabel.textColor = self.titleTextColor;
+        _titleLabel.textColor = _titleTextColor;
     }
     return _titleLabel;
 }
-//消息详细
-- (UILabel *)messageLabel {
-    if (!_messageLabel) {
-        _messageLabel = [[UILabel alloc]init];
-        _messageLabel.backgroundColor = [UIColor clearColor];
-        _messageLabel.font = [UIFont systemFontOfSize:_messageFontSize];
-        _messageLabel.numberOfLines = 0;
-        _messageLabel.textColor = self.messageTextColor;
+
+- (MessageContentView *)messageContentView {
+    if (!_messageContentView) {
+        _messageContentView = [[MessageContentView alloc]init];
+        _messageContentView.backgroundColor = [UIColor clearColor];
     }
-    return _messageLabel;
+    return _messageContentView;
 }
-//左边的操作按钮
-- (UIButton *)leftBtn {
-    if (!_leftBtn) {
-        _leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_leftBtn setTitleColor:self.cancelButtonTextColor forState:UIControlStateNormal];
-        [_leftBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-        _leftBtn.tag = _cancelButtonIndex;
-        _leftBtn.backgroundColor = [UIColor clearColor];
-        [_leftBtn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+
+- (UIView *)operationalView {
+    if (!_operationalView) {
+        _operationalView = [[UIView alloc]init];
+        _operationalView.backgroundColor = [UIColor clearColor];
     }
-    return _leftBtn;
+    return _operationalView;
 }
-//右边的操作按钮
-- (UIButton *)rightBtn {
-    if (!_rightBtn) {
-        _rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_rightBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-        [_rightBtn setTitleColor:self.oKButtonTitleTextColor forState:UIControlStateNormal];
-        _rightBtn.tag = _okButtonIndex;
-        _rightBtn.backgroundColor = [UIColor clearColor];
-        [_rightBtn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+
+- (NSMutableArray *)otherButtonTitles {
+    if (!_otherButtonTitles) {
+        _otherButtonTitles = [[NSMutableArray alloc]init];
     }
-    return _rightBtn;
+    return _otherButtonTitles;
 }
-//分割线
-- (UIView *)line1 {
-    if (!_line1) {
-        _line1 = [[UIView alloc]init];
-        _line1.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
-    }
-    return _line1;
+
++ (UIButton *)createButton {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    btn.backgroundColor = [UIColor clearColor];
+    return btn;
 }
-//两个按钮间的分割线
-- (UIView *)line2 {
-    if (!_line2) {
-        _line2 = [[UIView alloc]init];
-        _line2.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
-    }
-    return _line2;
-}
+
+
 //屏幕比例
 - (CGFloat)scale {
     if (_scale == 0) {
@@ -318,58 +366,39 @@ static UIWindow                                         *alertWindow;
     return _scale;
 }
 
-- (NSMutableParagraphStyle *)paragraphStyle {
-    if (!_paragraphStyle) {
-        _paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-    }
-    return _paragraphStyle;
-}
 
-- (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message {
-    if (!_attrStr) {
-        _attrStr = [[NSMutableAttributedString alloc]initWithString:message];
-    }
-    //调整行间距
-    self.paragraphStyle.lineSpacing = _lineSpacing;
-    [_attrStr addAttribute:NSParagraphStyleAttributeName value:_paragraphStyle range:NSMakeRange(0,_attrStr.string.length)];
-    _messageLabel.attributedText = _attrStr;
-    return _attrStr;
-}
 
 #pragma mark - setter方法设置属性
 //行高设置
 - (void)setLineSpacing:(CGFloat)lineSpacing {
     _lineSpacing = lineSpacing;
-    _paragraphStyle.lineSpacing = _lineSpacing*self.scale;
+    self.messageContentView.paragraphStyle.lineSpacing = _lineSpacing*_scale;
     [self configFrame];
 }
 
 - (void)setTitleFontSize:(CGFloat)titleFontSize {
     if (_titleLabel) {
         _titleFontSize = titleFontSize;
-        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize*self.scale];
+        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize*_scale];
         [self configFrame];
     }
 }
 
 - (void)setMessageFontSize:(CGFloat)messageFontSize {
-    if (_messageLabel) {
+    if (_message&&_message.length>0) {
         _messageFontSize = messageFontSize;
-        _messageLabel.font = [UIFont systemFontOfSize:_messageFontSize*self.scale];
+        self.messageContentView.messageLabel.font = [UIFont systemFontOfSize:_messageFontSize*_scale];
         [self configFrame];
     }
 }
 
 - (void)setButtonFontSize:(CGFloat)buttonFontSize {
-    if (_leftBtn) {
-        _buttonFontSize = buttonFontSize;
-        [_leftBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize*self.scale]];
+    if (self.otherButtonTitles) {
+         _buttonFontSize = buttonFontSize*_scale;
+        for (UIButton *btn in _otherButtonTitles) {
+            [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+        }
     }
-    if (_rightBtn) {
-        _buttonFontSize = buttonFontSize;
-        [_rightBtn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize*self.scale]];
-    }
-    if (_buttonFontSize != 18*self.scale)[self configFrame];
 }
 
 - (void)setTitleTextColor:(UIColor *)titleTextColor {
@@ -380,23 +409,18 @@ static UIWindow                                         *alertWindow;
 }
 
 - (void)setMessageTextColor:(UIColor *)messageTextColor {
-    if (_messageLabel) {
+    if (_message&&_message.length>0) {
         _messageTextColor = messageTextColor;
-        _messageLabel.textColor = _messageTextColor;
+        self.messageContentView.messageLabel.textColor = _messageTextColor;
     }
 }
 
-- (void)setCancelButtonTextColor:(UIColor *)cancelButtonTextColor {
-    if (_leftBtn) {
-        _cancelButtonTextColor = cancelButtonTextColor;
-        [_leftBtn setTitleColor:_cancelButtonTextColor forState:UIControlStateNormal];
-    }
-}
-
-- (void)setOKButtonTitleTextColor:(UIColor *)oKButtonTitleTextColor {
-    if (_rightBtn) {
-        _oKButtonTitleTextColor = oKButtonTitleTextColor;
-        [_rightBtn setTitleColor:_oKButtonTitleTextColor forState:UIControlStateNormal];
+- (void)setButtonTextColor:(UIColor *)buttonTextColor {
+    if (self.otherButtonTitles) {
+        _buttonTextColor = buttonTextColor;
+        for (UIButton *btn in _otherButtonTitles) {
+            [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+        }
     }
 }
 
