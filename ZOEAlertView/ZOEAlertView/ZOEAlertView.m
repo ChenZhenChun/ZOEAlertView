@@ -70,6 +70,7 @@ static UIWindow                                         *alertWindow;
         _message                = message;
         _cancelButtonTitle      = cancelButtonTitle;
         _textFieldPlaceholder   = @"";
+        _disAble                = YES;
     
         //将alertView存储在静态数组中
         static dispatch_once_t onceToken;
@@ -340,10 +341,10 @@ static UIWindow                                         *alertWindow;
 
 //重写父类方法(移除当前ZOEAlertView的同时将上一个ZOEAlertView显示出来)
 - (void)removeFromSuperview {
-    if (_shouldDisBlock&&!_shouldDisBlock(_clickButtonIndex)) {
+    if ((_shouldDisBlock&&!_shouldDisBlock(_clickButtonIndex))) {
         _isVisible = YES;
         [self showWithBlock:self.myBlock];
-        NSLog(@"Instance method 'shouldDismissWithBlock:' return NO");
+        NSLog(@"Instance method 'shouldDismissWithBlock:' return NO" );
         return;
     }else {
         _isVisible = NO;
@@ -393,8 +394,9 @@ static UIWindow                                         *alertWindow;
 
 //移除所有ZOEAlertView（不会触发block回调）
 + (void)dismissAllZOEAlertView {
-    while(alertViewArray.count) {
-        ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@" disAble=1 "];
+    NSArray *data = [alertViewArray filteredArrayUsingPredicate:predicate];
+    for (ZOEAlertView *alertView in data) {
         [alertView dismissZOEAlertView];
     }
 }

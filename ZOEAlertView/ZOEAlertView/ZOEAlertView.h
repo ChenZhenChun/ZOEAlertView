@@ -27,6 +27,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @property (nonatomic)        NSTextAlignment    messageTextAlignment;//messageLabel TextAlignment,default is NSTextAlignmentCenter
 @property (nonatomic,assign) ZOEAlertViewStyle  alertViewStyle;
 @property (nonatomic,copy)   NSString           *textFieldPlaceholder;
+@property (nonatomic,assign) BOOL               disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
 
 - (instancetype)initWithTitle:(NSString*)title message:(NSString*)message cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
 
@@ -66,4 +67,5 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
  移除所有ZOEAlertView（不会触发block回调）
  */
 + (void)dismissAllZOEAlertView;
+
 @end
