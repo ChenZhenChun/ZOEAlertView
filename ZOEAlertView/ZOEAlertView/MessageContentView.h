@@ -12,5 +12,8 @@
 @property (nonatomic,strong) UILabel                    *messageLabel;
 @property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
 @property (nonatomic,strong) NSMutableAttributedString  *attrStr;
+@property (nonatomic,strong) UITextField                *textField;
+
+
 - (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message;
 @end

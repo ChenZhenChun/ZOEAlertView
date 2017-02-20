@@ -41,4 +41,15 @@
     return _attrStr;
 }
 
+- (UITextField *)textField {
+    if (!_textField) {
+        _textField = [[UITextField alloc]init];
+        _textField.layer.borderWidth = 0.5;
+        _textField.layer.borderColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1].CGColor;
+        _textField.textAlignment = NSTextAlignmentLeft;
+        _textField.backgroundColor = [UIColor clearColor];
+    }
+    return _textField;
+}
+
 @end

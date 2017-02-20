@@ -3,8 +3,8 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.0.9"
-s.summary           = "初始化控件改成不定参数个数，同步UIAlertView，支持对指定button设置文字颜色"
+s.version           = "1.1.0"
+s.summary           = "ZOEAlertView 添加ZOEAlertViewStyle枚举类型、添加textFieldPlaceholder属性、添加Spring动画效果、添加shouldDismissWithBlock:和didDismissWithBlock:方法。优化控件显示的流畅度。"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
 DESC
