@@ -28,6 +28,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @property (nonatomic,assign) ZOEAlertViewStyle  alertViewStyle;
 @property (nonatomic,copy)   NSString           *textFieldPlaceholder;
 @property (nonatomic,assign) BOOL               disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
+@property (nonatomic,readonly)UITextField       *textField;
 
 - (instancetype)initWithTitle:(NSString*)title message:(NSString*)message cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
 

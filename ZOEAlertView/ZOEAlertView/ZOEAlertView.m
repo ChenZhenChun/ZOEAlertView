@@ -71,7 +71,7 @@ static UIWindow                                         *alertWindow;
         _cancelButtonTitle      = cancelButtonTitle;
         _textFieldPlaceholder   = @"";
         _disAble                = YES;
-    
+
         //将alertView存储在静态数组中
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
@@ -320,6 +320,7 @@ static UIWindow                                         *alertWindow;
 - (void)textFieldConfigByAlertViewStyleWithY:(CGFloat)y {
     if (self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
         self.messageContentView.textField.secureTextEntry = NO;
+        self.messageContentView.textField.placeholder = _textFieldPlaceholder;
         self.messageContentView.textField.font = [UIFont systemFontOfSize:_messageFontSize];
         self.messageContentView.textField.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,34*_scale);
     }else if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput) {
@@ -573,6 +574,14 @@ static UIWindow                                         *alertWindow;
     if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
         self.messageContentView.textField.placeholder = _textFieldPlaceholder;
     }
+}
+
+- (UITextField *)textField {
+    if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+        return self.messageContentView.textField;
+    }
+    NSLog(@"ZOEAlertViewStyle is ZOEAlertViewStyleDefault, so the textField returns nil");
+    return nil;
 }
 
 @end
