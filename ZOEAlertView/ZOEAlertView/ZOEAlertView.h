@@ -70,3 +70,40 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 + (void)dismissAllZOEAlertView;
 
 @end
+
+
+
+
+
+
+
+@interface ZOEActionSheet : UIView
+@property (nonatomic)        CGFloat            titleFontSize;//titleLabel font size,default is 18.
+@property (nonatomic)        CGFloat            buttonFontSize;//uibutton font size,default is 18.
+@property (nonatomic,strong) UIColor            *titleTextColor;
+@property (nonatomic,strong) UIColor            *buttonTextColor;
+@property (nonatomic,readonly)NSInteger         cancelButtonIndex;
+@property (nonatomic,assign) BOOL               disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
+
+- (instancetype)initWithTitle:(NSString *)title cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
+
+- (void)showWithBlock:(void(^)(NSInteger buttonIndex))block;
+
+/**
+ 移除当前的alertView（不会触发block回调）
+ */
+- (void)dismissZOEActionSheet;
+
+/**
+ 根据buttonIndex 设置button文字颜色
+ 
+ @param color  文字颜色
+ @param buttonIndex 按钮索引，cancelButtonIndex=0 otherButtonTitles以此类推
+ */
+- (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex;
+
+/**
+ 移除所有ZOEAlertView（不会触发block回调）
+ */
++ (void)dismissAllZOEActionSheet;
+@end
