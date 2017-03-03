@@ -273,8 +273,8 @@ static UIWindow                                         *alertWindow;
             if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
                 self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
                 if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                   self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH);
-                   [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
+                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH);
+                    [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
                 }else {
                     self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
                 }
@@ -535,7 +535,7 @@ static UIWindow                                         *alertWindow;
 
 - (void)setButtonFontSize:(CGFloat)buttonFontSize {
     if (self.otherButtonTitles) {
-         _buttonFontSize = buttonFontSize*_scale;
+        _buttonFontSize = buttonFontSize*_scale;
         for (UIButton *btn in _otherButtonTitles) {
             [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
         }
@@ -615,6 +615,7 @@ static UIWindow                                         *alertWindow;
 @property (nonatomic,assign) NSInteger                  clickButtonIndex;
 @property (nonatomic,assign) ZOEStyle                   zoeStyle;
 @property (nonatomic,copy) void(^myBlock)(NSInteger buttonIndex);
+@property (nonatomic)        CGPoint                    oldCenterPoint;
 @end
 
 @implementation ZOEActionSheet
@@ -729,12 +730,11 @@ static UIWindow                                         *alertWindow;
         }
         
         //设置延迟解决UILabel渲染缓慢的问题。
-        __block CGPoint center = self.actionSheetContentView.center;
+        __block CGPoint center = _oldCenterPoint;
         center.y += self.actionSheetContentView.frame.size.height;
         self.actionSheetContentView.center = center;
         [UIView animateWithDuration:0.2 delay:0.00001 options:UIViewAnimationOptionTransitionNone animations:^{
-            center.y -= self.actionSheetContentView.frame.size.height;
-            self.actionSheetContentView.center = center;
+            self.actionSheetContentView.center = _oldCenterPoint;
         } completion:^(BOOL finished) {
         }];
     }else {
@@ -760,6 +760,7 @@ static UIWindow                                         *alertWindow;
                                                        self.bounds.size.height-actionSheeetViewH,
                                                        self.bounds.size.width-30*_scale,
                                                        actionSheeetViewH);
+        _oldCenterPoint = self.actionSheetContentView.center;
         self.contentView.frame = CGRectMake(0,0,
                                             _actionSheetContentView.frame.size.width,
                                             contentViewH);
@@ -812,16 +813,17 @@ static UIWindow                                         *alertWindow;
 //操作按钮点击事件
 - (void)clickButton:(UIButton *)sender {
     _clickButtonIndex = sender.tag-kBtnTagAppend;
+    __block CGPoint center = _oldCenterPoint;
     [UIView animateWithDuration:0.2 delay:0.00001 options:UIViewAnimationOptionTransitionNone animations:^{
-        CGPoint center = self.actionSheetContentView.center;
         center.y += self.actionSheetContentView.frame.size.height;
         self.actionSheetContentView.center = center;
     } completion:^(BOOL finished) {
         [self removeFromSuperview];
+        self.actionSheetContentView.center = _oldCenterPoint;
+        if (_myBlock) {
+            _myBlock(_clickButtonIndex);
+        }
     }];
-    if (_myBlock) {
-        _myBlock(_clickButtonIndex);
-    }
 }
 
 //重写父类方法(移除当前actionSheet的同时将上一个actionSheet显示出来)
@@ -857,12 +859,13 @@ static UIWindow                                         *alertWindow;
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    __block CGPoint center = _oldCenterPoint;
     [UIView animateWithDuration:0.2 delay:0.00001 options:UIViewAnimationOptionTransitionNone animations:^{
-        CGPoint center = self.actionSheetContentView.center;
         center.y += self.actionSheetContentView.frame.size.height;
         self.actionSheetContentView.center = center;
     } completion:^(BOOL finished) {
         [self dismissZOEActionSheet];
+        self.actionSheetContentView.center = _oldCenterPoint;
     }];
 }
 
