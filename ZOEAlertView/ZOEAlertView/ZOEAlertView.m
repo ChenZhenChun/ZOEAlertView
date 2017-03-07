@@ -53,6 +53,7 @@ static UIWindow                                         *alertWindow;
 @property (nonatomic,copy) void(^myBlock)(NSInteger buttonIndex);
 @property (nonatomic,copy) BOOL(^shouldDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,copy) void(^didDisBlock)(NSInteger buttonIndex);
+@property (nonatomic,assign) BOOL                       isRedraw_showWithBlock;//调用showWithBlock 方法时是否需要重绘，默认不需要重绘。
 
 @end
 
@@ -125,53 +126,19 @@ static UIWindow                                         *alertWindow;
         }
         //添加other按钮
         if (otherButtonTitles) {
-            UIButton *btn = [ZOEAlertView createButton];
-            [btn setTitle:otherButtonTitles forState:UIControlStateNormal];
-            [btn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
-            [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
-            [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-            [self.otherButtonTitles addObject:btn];
-            
+            [self addButtonWithTitle:otherButtonTitles];
             va_list argList;  //定义一个 argList 指针来访问参数表
             va_start(argList, otherButtonTitles);  //初始化 argList，让它指向第一个变参，otherButtonTitles 这里是第一个参数，虽然加了s,它不是数组。
             id arg;
             while ((arg = va_arg(argList, id))) //调用 argList 依次取出 参数，它会自带指向下一个参数
             {
-                UIButton *btn1 = [ZOEAlertView createButton];
-                [btn1 setTitle:arg forState:UIControlStateNormal];
-                [btn1 setTitleColor:_buttonTextColor forState:UIControlStateNormal];
-                [btn1.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-                [btn1 addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
-                [self.otherButtonTitles addObject:btn1];
+                [self addButtonWithTitle:arg];
             }
             va_end(argList); // 收尾，记得关闭关闭 va_list
         }
         [self.alertContentView addSubview:self.operationalView];
-        //设置按钮索引、绘制分割线
-        int buttonIndex = (_cancelButtonTitle&&_cancelButtonTitle.length>0)?0:1;
-        if (_otherButtonTitles.count==2) {
-            for (int i=0; i<self.otherButtonTitles.count; i++) {
-                UIButton *btn = _otherButtonTitles[i];
-                btn.tag = kBtnTagAppend+buttonIndex++;
-                [self.operationalView addSubview:btn];
-            }
-            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0,kalertViewW,0.5)];
-            line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
-            [self.operationalView addSubview:line];
-            UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(kalertViewW/2.0,0,0.5,kBtnH)];
-            line1.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
-            [self.operationalView addSubview:line1];
-            
-        }else {
-            for (int i=0; i<self.otherButtonTitles.count; i++) {
-                UIButton *btn = _otherButtonTitles[i];
-                btn.tag = kBtnTagAppend+buttonIndex++;
-                [self.operationalView addSubview:btn];
-                UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0+i*kBtnH,kalertViewW,0.5)];
-                line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
-                [self.operationalView addSubview:line];
-            }
-        }
+        _isRedraw_showWithBlock = NO;
+        [self drawLine];
         //配置frame
         [self configFrame];
     }
@@ -185,6 +152,11 @@ static UIWindow                                         *alertWindow;
     _myBlock = block;
     _animated = NO;
     if (self.otherButtonTitles.count) {
+        if (_isRedraw_showWithBlock) {
+            _isRedraw_showWithBlock = NO;
+            [self drawLine];
+            [self configFrame];
+        }
         UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
         [window endEditing:YES];
         if (_alertViewStyle == ZOEAlertViewStyleDefault) {
@@ -338,6 +310,39 @@ static UIWindow                                         *alertWindow;
     }
 }
 
+//设置button索引及绘制分割线
+- (void)drawLine {
+    for (UIView *view in [self.operationalView subviews]) {
+        if (view.tag == 74129)[view removeFromSuperview];
+    }
+    int buttonIndex = (_cancelButtonTitle&&_cancelButtonTitle.length>0)?0:1;
+    if (_otherButtonTitles.count==2) {
+        for (int i=0; i<self.otherButtonTitles.count; i++) {
+            UIButton *btn = _otherButtonTitles[i];
+            btn.tag = kBtnTagAppend+buttonIndex++;
+            [self.operationalView addSubview:btn];
+        }
+        UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0,kalertViewW,0.5)];
+        line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+        line.tag = 74129;
+        [self.operationalView addSubview:line];
+        UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(kalertViewW/2.0,0,0.5,kBtnH)];
+        line1.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+        [self.operationalView addSubview:line1];
+        
+    }else {
+        for (int i=0; i<self.otherButtonTitles.count; i++) {
+            UIButton *btn = _otherButtonTitles[i];
+            btn.tag = kBtnTagAppend+buttonIndex++;
+            [self.operationalView addSubview:btn];
+            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0+i*kBtnH,kalertViewW,0.5)];
+            line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
+            line.tag = 74129;
+            [self.operationalView addSubview:line];
+        }
+    }
+}
+
 //操作按钮点击事件
 - (void)clickButton:(UIButton *)sender {
     _clickButtonIndex = sender.tag-kBtnTagAppend;
@@ -402,6 +407,17 @@ static UIWindow                                         *alertWindow;
     if (btn) {
         [btn setTitleColor:color forState:UIControlStateNormal];
     }
+}
+
+- (void)addButtonWithTitle:(NSString *)title {
+    if (title == nil || title == NULL)return;
+    UIButton *btn = [ZOEAlertView createButton];
+    [btn setTitle:title forState:UIControlStateNormal];
+    [btn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+    [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+    [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+    [self.otherButtonTitles addObject:btn];
+    _isRedraw_showWithBlock = YES;
 }
 
 //移除所有ZOEAlertView（不会触发block回调）
@@ -616,6 +632,7 @@ static UIWindow                                         *alertWindow;
 @property (nonatomic,assign) ZOEStyle                   zoeStyle;
 @property (nonatomic,copy) void(^myBlock)(NSInteger buttonIndex);
 @property (nonatomic)        CGPoint                    oldCenterPoint;
+@property (nonatomic,assign) BOOL                       isRedraw_showWithBlock;//调用showWithBlock 方法时是否需要重绘，默认不需要重绘。
 @end
 
 @implementation ZOEActionSheet
@@ -636,7 +653,6 @@ static UIWindow                                         *alertWindow;
         _cancelButtonTitle      = cancelButtonTitle;
         _disAble                = YES;
         _zoeStyle               = ZOEAlertViewStyleActionSheet;
-        
         //将actionSheet存储在静态数组中
         dispatch_once(&onceToken, ^{
             alertViewArray = [[NSMutableArray alloc]init];
@@ -676,27 +692,17 @@ static UIWindow                                         *alertWindow;
         }
         //添加other按钮
         if (otherButtonTitles) {
-            UIButton *btn = [ZOEActionSheet createButton];
-            [btn setTitle:otherButtonTitles forState:UIControlStateNormal];
-            [btn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
-            [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
-            [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-            [self.otherButtonTitles addObject:btn];
-            
+            [self addButtonWithTitle:otherButtonTitles];
             va_list argList;  //定义一个 argList 指针来访问参数表
             va_start(argList, otherButtonTitles);  //初始化 argList，让它指向第一个变参，otherButtonTitles 这里是第一个参数，虽然加了s,它不是数组。
             id arg;
             while ((arg = va_arg(argList, id))) //调用 argList 依次取出 参数，它会自带指向下一个参数
             {
-                UIButton *btn1 = [ZOEActionSheet createButton];
-                [btn1 setTitle:arg forState:UIControlStateNormal];
-                [btn1 setTitleColor:_buttonTextColor forState:UIControlStateNormal];
-                [btn1.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
-                [btn1 addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
-                [self.otherButtonTitles addObject:btn1];
+                [self addButtonWithTitle:arg];
             }
             va_end(argList); // 收尾，记得关闭关闭 va_list
         }
+        _isRedraw_showWithBlock = NO;
         [self drawLine];
         //配置frame
         [self configFrame];
@@ -709,6 +715,11 @@ static UIWindow                                         *alertWindow;
 - (void)showWithBlock:(void (^)(NSInteger))block {
     _myBlock = block;
     if (self.otherButtonTitles.count) {
+        if (_isRedraw_showWithBlock) {
+            _isRedraw_showWithBlock = NO;
+            [self drawLine];
+            [self configFrame];
+        }
         UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
         [window endEditing:YES];
         [alertWindow endEditing:YES];
@@ -879,6 +890,17 @@ static UIWindow                                         *alertWindow;
     if (btn) {
         [btn setTitleColor:color forState:UIControlStateNormal];
     }
+}
+
+- (void)addButtonWithTitle:(NSString *)title {
+    if (title == nil || title == NULL)return;
+    UIButton *btn = [ZOEActionSheet createButton];
+    [btn setTitle:title forState:UIControlStateNormal];
+    [btn addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
+    [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
+    [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
+    [self.otherButtonTitles addObject:btn];
+    _isRedraw_showWithBlock = YES;
 }
 
 //移除所有ZOEActionSheet（不会触发block回调）

@@ -65,6 +65,13 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 - (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex;
 
 /**
+ 通过title添加Button
+ 
+ @param title 按钮文本
+ */
+- (void)addButtonWithTitle:(NSString *)title;
+
+/**
  移除所有ZOEAlertView（不会触发block回调）
  */
 + (void)dismissAllZOEAlertView;
@@ -101,6 +108,14 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
  @param buttonIndex 按钮索引，cancelButtonIndex=0 otherButtonTitles以此类推
  */
 - (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex;
+
+
+/**
+ 通过title添加Button
+
+ @param title 按钮文本
+ */
+- (void)addButtonWithTitle:(NSString *)title;
 
 /**
  移除所有ZOEAlertView（不会触发block回调）
