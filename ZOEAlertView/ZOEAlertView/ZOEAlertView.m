@@ -372,6 +372,8 @@ static UIWindow                                         *alertWindow;
         }
     }
     //将数组的最后一个alertView显示出来
+    //执行[alertViewArray removeObject:alertVeiw];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
+    void(^myBlockTemp)(NSInteger buttonIndex) = _myBlock;
     if (alertViewArray.count>0) {
         ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
         if ([ZOEAlertView isKindOfClass:[alertView class]]) {
@@ -380,6 +382,7 @@ static UIWindow                                         *alertWindow;
             [alertView showWithBlock:alertView.myBlock];
         }
     }
+    _myBlock = myBlockTemp;
     
     //当数组中没有alertView时将父容器隐藏。
     if (!alertViewArray.count) {
@@ -841,12 +844,16 @@ static UIWindow                                         *alertWindow;
 - (void)removeFromSuperview {
     [super removeFromSuperview];
     //有可能不是按照数组倒序的顺序移除，所以需要遍历数组
+    //执行[alertViewArray removeObject:actionSheet];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
+    void(^myBlockTemp)(NSInteger buttonIndex) = _myBlock;
     for (UIView *actionSheet in alertViewArray) {
         if (actionSheet == self) {
             [alertViewArray removeObject:actionSheet];
             break;
         }
     }
+    _myBlock = myBlockTemp;
+    
     //将数组的最后一个alertView显示出来
     if (alertViewArray.count>0) {
         ZOEAlertView *actionSheet = alertViewArray[alertViewArray.count-1];
