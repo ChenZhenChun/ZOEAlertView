@@ -183,7 +183,7 @@ static UIWindow                                         *alertWindow;
         
         //设置延迟解决UILabel渲染缓慢的问题。
         self.alertContentView.alpha = 0;
-        [UIView animateWithDuration:0.2 delay:0.00001 options:UIViewAnimationOptionTransitionNone animations:^{
+        [UIView animateWithDuration:0 delay:0.00001 options:UIViewAnimationOptionTransitionNone animations:^{
             self.alertContentView.alpha = 1;
         } completion:^(BOOL finished) {
         }];
