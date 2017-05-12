@@ -8,7 +8,12 @@
 
 #import "MessageContentView.h"
 
+@interface MessageContentView()
+@property (nonatomic,strong) NSMutableAttributedString  *attrStr;
+@end
+
 @implementation MessageContentView
+
 //消息详细
 - (UILabel *)messageLabel {
     if (!_messageLabel) {
@@ -30,7 +35,7 @@
     self.attrStr = [self.attrStr initWithString:message];
     //调整行间距
     [_attrStr addAttribute:NSParagraphStyleAttributeName value:self.paragraphStyle range:NSMakeRange(0,_attrStr.string.length)];
-    _messageLabel.attributedText = _attrStr;
+    if (_messageLabel)_messageLabel.attributedText = _attrStr;
     return _attrStr;
 }
 

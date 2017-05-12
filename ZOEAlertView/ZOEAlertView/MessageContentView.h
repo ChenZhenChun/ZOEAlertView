@@ -8,12 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
+/**
+  PS:MessageContentView的宽度是一个固定值
+  MessageContentView宽度 = （300-56）*_scale;
+ _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
+ */
 @interface MessageContentView : UIView
 @property (nonatomic,strong) UILabel                    *messageLabel;
-@property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
-@property (nonatomic,strong) NSMutableAttributedString  *attrStr;
 @property (nonatomic,strong) UITextField                *textField;
 
-
+@property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
 - (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message;
 @end

@@ -7,7 +7,6 @@
 //
 
 #import "ZOEAlertView.h"
-#import "MessageContentView.h"
 
 typedef NS_ENUM(NSInteger, ZOEStyle) {
     ZOEAlertViewStyleAlert = 0,
@@ -34,7 +33,7 @@ static NSMutableArray                                   *alertViewArray;
 static UIWindow                                         *alertWindow;
 
 
-@interface ZOEAlertView()<UITextFieldDelegate>
+@interface ZOEAlertView()<UITextFieldDelegate,UITextViewDelegate>
 @property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *alertContentView;
 @property (nonatomic,strong) UILabel                    *titleLabel;
@@ -54,7 +53,7 @@ static UIWindow                                         *alertWindow;
 @property (nonatomic,copy) BOOL(^shouldDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,copy) void(^didDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,assign) BOOL                       isRedraw_showWithBlock;//调用showWithBlock 方法时是否需要重绘，默认不需要重绘。
-
+@property (nonatomic,strong) UILabel                    *tipLabel;//提示性信息
 @end
 
 @implementation ZOEAlertView
@@ -146,6 +145,19 @@ static UIWindow                                         *alertWindow;
     return self;
 }
 
+- (void)setDelegate:(id<ZOEAlertViewDelegate>)delegate {
+    _delegate = delegate;
+    if ([self.delegate respondsToSelector:@selector(messageContentViewWithZOEAlertView:)]) {
+        if (_messageContentView) {
+            [_messageContentView removeFromSuperview];
+            _messageContentView = nil;
+        }
+        _messageContentView = [self.delegate messageContentViewWithZOEAlertView:self];
+        [self configFrame];
+        [_alertContentView addSubview:self.messageContentView];
+    }
+}
+
 //展示控件
 - (void)showWithBlock:(void (^)(NSInteger))block {
     _isVisible = YES;
@@ -227,56 +239,70 @@ static UIWindow                                         *alertWindow;
         }
         
         //message区域frame设置
-        if (_message&&_message.length>0) {
+        if ([self.delegate respondsToSelector:@selector(heightForMessageContentView)]) {
+            //代理对象自定的messageContentView模板frame设置
             CGFloat y = 28*_scale;
             alertViewH += 28*_scale;
             if (_titleLabel) {
                 y = (21+28)*_scale+_titleLabel.font.pointSize;
             }
-            self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
-            self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
-            [self.messageContentView attrStrWithMessage:_message];
-            [self.messageContentView.messageLabel sizeToFit];
-            CGFloat textFieldH = 0;
-            if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                textFieldH =44*_scale;
-            }
-            //alertViewH大于屏幕高度-300，那么对这个判断做等法判断出相等时messageContentView的高度
-            if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
-                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
-                if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH);
-                    [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
-                }else {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
-                }
-            }else {
-                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height+textFieldH);
-                if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.frame.size.height-textFieldH);
-                    [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
-                }else {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height);
-                }
-            }
-            //使用sizeToFit之后对齐方式失效，
-            self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-            self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
-            alertViewH += self.messageContentView.frame.size.height;
+            CGFloat msgContentViewheight = [self.delegate heightForMessageContentView];
+            self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,msgContentViewheight);
+            alertViewH += msgContentViewheight;
         }else {
-            if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+            //默认messageContentView模板frame设置
+            if (_message&&_message.length>0) {
                 CGFloat y = 28*_scale;
                 alertViewH += 28*_scale;
                 if (_titleLabel) {
                     y = (21+28)*_scale+_titleLabel.font.pointSize;
                 }
-                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,34*_scale);
-                [self textFieldConfigByAlertViewStyleWithY:-10*_scale];
+                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
+                self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
+                [self.messageContentView attrStrWithMessage:_message];
+                [self.messageContentView.messageLabel sizeToFit];
+                CGFloat textFieldH = 0;
+                if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+                    textFieldH =44*_scale;
+                }
+                //alertViewH大于屏幕高度-300，那么对这个判断做等法判断出相等时messageContentView的高度
+                if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
+                    self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
+                    if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+                        self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH);
+                        [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
+                    }else {
+                        self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
+                    }
+                }else {
+                    self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height+textFieldH);
+                    if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+                        self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.frame.size.height-textFieldH);
+                        [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
+                    }else {
+                        self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height);
+                    }
+                }
+                //使用sizeToFit之后对齐方式失效，
                 self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
                 self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
                 alertViewH += self.messageContentView.frame.size.height;
+            }else {
+                if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+                    CGFloat y = 28*_scale;
+                    alertViewH += 28*_scale;
+                    if (_titleLabel) {
+                        y = (21+28)*_scale+_titleLabel.font.pointSize;
+                    }
+                    self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,34*_scale);
+                    [self textFieldConfigByAlertViewStyleWithY:-10*_scale];
+                    self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+                    self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
+                    alertViewH += self.messageContentView.frame.size.height;
+                }
             }
         }
+        
         
         //按钮操作区frame设置
         self.operationalView.frame = CGRectMake(0,alertViewH-allBtnH,kalertViewW,allBtnH);
@@ -434,6 +460,40 @@ static UIWindow                                         *alertWindow;
     }
 }
 
+//处理键盘遮挡输入框的问题
+- (void)handleKeyboard:(UIView *)textFieldOrTextView {
+    if ([textFieldOrTextView isKindOfClass:[UITextField class]]) {
+        UITextField *textField = (UITextField *)textFieldOrTextView;
+        textField.delegate = self;
+    }else if ([textFieldOrTextView isKindOfClass:[UITextView class]]) {
+        UITextView *textView = (UITextView *)textFieldOrTextView;
+        textView.delegate = self;
+    }
+}
+
+//展示提示性信息
+- (void)showTipViewWithMessage:(NSString *)message {
+    if (!message || !message.length) return;
+    self.tipLabel.text  = message;
+    [self.tipLabel sizeToFit];
+    CGRect frame        = self.tipLabel.frame;
+    frame.size.width    = frame.size.width +40;
+    if (frame.size.width>([[UIScreen mainScreen] bounds].size.width-30)) {
+        frame.size.width = [[UIScreen mainScreen] bounds].size.width-30;
+    }
+    frame.size.height   = frame.size.height+15;
+    _tipLabel.layer.cornerRadius = frame.size.height/2.0;
+    _tipLabel.frame     = frame;
+    _tipLabel.center    = CGPointMake(self.frame.size.width/2.0, self.frame.size.height/2.0);
+    self.tipLabel.alpha = 1;
+    [self addSubview:self.tipLabel];
+    __weak typeof(self) weakSelf = self;
+    [UIView animateWithDuration:0.5 delay:1 options:UIViewAnimationOptionShowHideTransitionViews animations:^{
+         weakSelf.tipLabel.alpha = 0;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
 
 #pragma mark - UITextFieldDelegate
 //开始编辑输入框的时候，软键盘出现，执行此事件
@@ -463,6 +523,45 @@ static UIWindow                                         *alertWindow;
 }
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [alertWindow endEditing:YES];
+}
+
+
+
+#pragma mark -textViewDelegate
+
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+    self.oldCenterPoint = self.alertContentView.center;
+    //获取textField在屏幕上的坐标
+    CGPoint textFieldPoint = [[textView superview]convertPoint:textView.frame.origin toView:alertWindow];
+    int offset = textFieldPoint.y + textView.frame.size.height - (alertWindow.frame.size.height - 216.0)+90;//键盘高度216
+    
+    NSTimeInterval animationDuration = 0.30f;
+    [UIView beginAnimations:@"ResizeForKeyboard" context:nil];
+    [UIView setAnimationDuration:animationDuration];
+    //将视图的Y坐标向上移动offset个单位，以使下面腾出地方用于软键盘的显示
+    if(offset > 0) {
+        CGPoint centerPoint = self.alertContentView.center;
+        centerPoint.y = centerPoint.y-offset;
+        self.alertContentView.center = centerPoint;
+    }
+    [UIView commitAnimations];
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView {
+    self.alertContentView.center = self.oldCenterPoint;
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
+    /**
+    判断输入的字是否是回车，即按下return
+    返回NO，就代表return键值失效，即页面上按下return，不会出现换行，如果为yes，则输入页面会换行
+     **/
+    if ([text isEqualToString:@"\n"]){ //
+        [alertWindow endEditing:YES];
+        return NO;
+    }
+    
+    return YES;
 }
 
 #pragma mark - Properties
@@ -516,7 +615,24 @@ static UIWindow                                         *alertWindow;
 + (UIButton *)createButton {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor clearColor];
+    
     return btn;
+}
+
+- (UILabel *)tipLabel {
+    if (_tipLabel)return _tipLabel;
+    _tipLabel = [[UILabel alloc]init];
+    _tipLabel.numberOfLines = 0;
+    _tipLabel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
+    _tipLabel.textColor = [UIColor whiteColor];
+    _tipLabel.bounds    = CGRectMake(0, 30,300,30);
+    _tipLabel.center    = CGPointMake(self.alertContentView.frame.size.width/2.0, self.alertContentView.frame.size.height/2.0);
+    _tipLabel.font      = [UIFont systemFontOfSize:15*_scale];
+    _tipLabel.textAlignment = NSTextAlignmentCenter;
+    _tipLabel.userInteractionEnabled = NO;
+    _tipLabel.layer.cornerRadius = 15;
+    _tipLabel.clipsToBounds = YES;
+    return _tipLabel;
 }
 
 
