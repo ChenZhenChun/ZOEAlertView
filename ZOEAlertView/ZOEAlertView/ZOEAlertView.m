@@ -484,15 +484,62 @@ static UIWindow                                         *alertWindow;
     frame.size.height   = frame.size.height+15;
     _tipLabel.layer.cornerRadius = frame.size.height/2.0;
     _tipLabel.frame     = frame;
-    _tipLabel.center    = CGPointMake(self.frame.size.width/2.0, self.frame.size.height/2.0);
+    _tipLabel.center    = CGPointMake(self.frame.size.width/2.0, self.frame.size.height*0.8);
     self.tipLabel.alpha = 1;
-    [self addSubview:self.tipLabel];
+    //键盘弹出需要时间，如果在键盘弹出之前就加载提示语，提示语会被键盘遮挡，所以这边做了一个延迟处理。
+    [self performSelector:@selector(handleTipViewAnimate) withObject:nil afterDelay:0.01];
+}
+
+//处理提示语信息动画
+- (void)handleTipViewAnimate {
+    UIView *view = [self keyboardView];
+    [view addSubview:self.tipLabel];
     __weak typeof(self) weakSelf = self;
     [UIView animateWithDuration:0.5 delay:1 options:UIViewAnimationOptionShowHideTransitionViews animations:^{
-         weakSelf.tipLabel.alpha = 0;
+        weakSelf.tipLabel.alpha = 0;
     } completion:^(BOOL finished) {
         
     }];
+}
+
+//获取键盘view
+- (UIView *)keyboardView {
+    UIWindow* tempWindow;
+    //Because we cant get access to the UIKeyboard throught the SDK we will just use UIView.
+    //UIKeyboard is a subclass of UIView anyways
+    UIView* keyboard;
+    
+    //Check each window in our application
+    for(int c = 0; c < [[[UIApplication sharedApplication] windows] count]; c ++) {
+        //Get a reference of the current window
+        tempWindow = [[[UIApplication sharedApplication] windows] objectAtIndex:c];
+        
+        //Get a reference of the current view
+        for(int i = 0; i < [tempWindow.subviews count]; i++) {
+            keyboard = [tempWindow.subviews objectAtIndex:i];
+            if([[keyboard description] hasPrefix:@"(lessThen)UIKeyboard"] == YES) {
+                //If we get to this point, then our UIView "keyboard" is referencing our keyboard.
+                return keyboard;
+            }
+        }
+        
+        for(UIView* potentialKeyboard in tempWindow.subviews) {
+            // if the real keyboard-view is found, remember it.
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+                if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else {
+                if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+        }
+    }
+    return keyboard;
 }
 
 #pragma mark - UITextFieldDelegate
@@ -731,6 +778,7 @@ static UIWindow                                         *alertWindow;
     NSLog(@"ZOEAlertViewStyle is ZOEAlertViewStyleDefault, so the textField returns nil");
     return nil;
 }
+
 @end
 
 
