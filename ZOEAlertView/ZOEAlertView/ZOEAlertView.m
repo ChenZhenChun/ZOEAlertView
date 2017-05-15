@@ -160,7 +160,6 @@ static UIWindow                                         *alertWindow;
 
 //展示控件
 - (void)showWithBlock:(void (^)(NSInteger))block {
-    _isVisible = YES;
     _myBlock = block;
     _animated = NO;
     if (self.otherButtonTitles.count) {
@@ -169,13 +168,16 @@ static UIWindow                                         *alertWindow;
             [self drawLine];
             [self configFrame];
         }
-        UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
-        [window endEditing:YES];
+        if (!_isVisible) {
+            UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
+            [window endEditing:YES];
+        }
         if (_alertViewStyle == ZOEAlertViewStyleDefault) {
-            [alertWindow endEditing:NO];
+            if (!_isVisible)[alertWindow endEditing:NO];
         }else {
             [self.messageContentView.textField becomeFirstResponder];
         }
+        _isVisible = YES;
         //如果alertView重复调用show方法，先将数组中原来的对象移除，然后继续添加到数组的最后面，
         for (UIView *alertVeiw in alertViewArray) {
             if (alertVeiw == self) {
@@ -495,7 +497,7 @@ static UIWindow                                         *alertWindow;
     UIView *view = [self keyboardView];
     [view addSubview:self.tipLabel];
     __weak typeof(self) weakSelf = self;
-    [UIView animateWithDuration:0.5 delay:1 options:UIViewAnimationOptionShowHideTransitionViews animations:^{
+    [UIView animateWithDuration:0.5 delay:2 options:UIViewAnimationOptionShowHideTransitionViews animations:^{
         weakSelf.tipLabel.alpha = 0;
     } completion:^(BOOL finished) {
         

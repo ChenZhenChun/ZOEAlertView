@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.2.0"
+s.version           = "1.2.1"
 s.summary           = "It is a ZOEAlertView used on iOS, which implement by Objective-C"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
