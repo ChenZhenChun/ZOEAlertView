@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.2.1"
+s.version           = "1.2.2"
 s.summary           = "It is a ZOEAlertView used on iOS, which implement by Objective-C"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
@@ -18,10 +18,25 @@ s.platform          = :ios, '7.0'
 s.requires_arc = true
 
 #source_files路径是相对podspec文件的路径
-#核心模块
+
+#ZOECommon模块
+s.subspec 'ZOECommon' do |ss|
+ss.source_files = 'ZOEAlertView/ZOECommon/*.{h,m}'
+ss.public_header_files = 'ZOEAlertView/ZOECommon/*.h'
+end
+
+#ZOEAlertView模块
 s.subspec 'ZOEAlertView' do |ss|
 ss.source_files = 'ZOEAlertView/ZOEAlertView/*.{h,m}'
 ss.public_header_files = 'ZOEAlertView/ZOEAlertView/*.h'
+ss.dependency 'ZOEAlertView/ZOECommon'
+end
+
+#ZOEActionSheet模块
+s.subspec 'ZOEActionSheet' do |ss|
+ss.source_files = 'ZOEAlertView/ZOEActionSheet/*.{h,m}'
+ss.public_header_files = 'ZOEAlertView/ZOEActionSheet/*.h'
+ss.dependency 'ZOEAlertView/ZOECommon'
 end
 
 s.frameworks = 'Foundation', 'UIKit'
