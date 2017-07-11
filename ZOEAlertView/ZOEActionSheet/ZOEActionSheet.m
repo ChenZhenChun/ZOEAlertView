@@ -10,10 +10,7 @@
 #import "ZOECommonHead.h"
 
 @interface ZOEActionSheet()
-{
-    NSMutableArray              *actionSheetArray;
-    ZOEWindow                   *actionSheetWindow;
-}
+
 @property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *actionSheetContentView;
 @property (nonatomic,strong) UIView                     *contentView;
@@ -49,9 +46,6 @@
         _cancelButtonTitle      = cancelButtonTitle;
         _disAble                = YES;
         _zoeStyle               = ZOEAlertViewStyleActionSheet;
-        
-        actionSheetArray        = [ZOEWindow shareStackArray];
-        actionSheetWindow       = [ZOEWindow shareInstance];
         //添加子控件
         [self addSubview:self.actionSheetContentView];
         [self.actionSheetContentView addSubview:self.contentView];
@@ -105,21 +99,21 @@
         }
         UIWindow *window = [[[UIApplication sharedApplication]delegate]window];
         [window endEditing:YES];
-        [actionSheetWindow endEditing:YES];
+        [[ZOEWindow shareInstance] endEditing:YES];
         //如果actionSheet重复调用show方法，先将数组中原来的对象移除，然后继续添加到数组的最后面，
-        for (UIView *actionSheet in actionSheetArray) {
+        for (UIView *actionSheet in [ZOEWindow shareStackArray]) {
             if (actionSheet == self) {
                 actionSheet.hidden = NO;
-                [actionSheetArray removeObject:actionSheet];
+                [[ZOEWindow shareStackArray] removeObject:actionSheet];
                 break;
             }
         }
-        [actionSheetArray addObject:self];
-        [actionSheetWindow addSubview:self];
-        actionSheetWindow.hidden = NO;
+        [[ZOEWindow shareStackArray] addObject:self];
+        [[ZOEWindow shareInstance] addSubview:self];
+        [ZOEWindow shareInstance].hidden = NO;
         //有新的actionSheet被展现，所以要将前一个actionSheet暂时隐藏
-        if (actionSheetArray.count-1>0) {
-            UIView *alertView = actionSheetArray[actionSheetArray.count-2];
+        if ([ZOEWindow shareStackArray].count-1>0) {
+            UIView *alertView = [ZOEWindow shareStackArray][[ZOEWindow shareStackArray].count-2];
             alertView.hidden = YES;
         }
         
@@ -132,7 +126,7 @@
         } completion:^(BOOL finished) {
         }];
     }else {
-        actionSheetWindow.hidden = YES;
+        [ZOEWindow shareInstance].hidden = YES;
     }
 }
 
@@ -228,19 +222,19 @@
 - (void)removeFromSuperview {
     [super removeFromSuperview];
     //有可能不是按照数组倒序的顺序移除，所以需要遍历数组
-    //执行[actionSheetArray removeObject:actionSheet];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
+    //执行[[ZOEWindow shareStackArray] removeObject:actionSheet];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
     void(^myBlockTemp)(NSInteger buttonIndex) = _myBlock;
-    for (UIView *actionSheet in actionSheetArray) {
+    for (UIView *actionSheet in [ZOEWindow shareStackArray]) {
         if (actionSheet == self) {
-            [actionSheetArray removeObject:actionSheet];
+            [[ZOEWindow shareStackArray] removeObject:actionSheet];
             break;
         }
     }
     _myBlock = myBlockTemp;
     
     //将数组的最后一个alertView显示出来
-    if (actionSheetArray.count>0) {
-        ZOEActionSheet *actionSheet = actionSheetArray[actionSheetArray.count-1];
+    if ([ZOEWindow shareStackArray].count>0) {
+        ZOEActionSheet *actionSheet = [ZOEWindow shareStackArray][[ZOEWindow shareStackArray].count-1];
         if ([ZOEActionSheet isKindOfClass:[actionSheet class]]) {
             [actionSheet showWithBlock:actionSheet.myBlock animated:actionSheet.animated];
         }else {
@@ -249,8 +243,8 @@
     }
     
     //当数组中没有actionSheet时将父容器隐藏。
-    if (!actionSheetArray.count) {
-        actionSheetWindow.hidden = YES;
+    if (![ZOEWindow shareStackArray].count) {
+        [ZOEWindow shareInstance].hidden = YES;
     }
 }
 

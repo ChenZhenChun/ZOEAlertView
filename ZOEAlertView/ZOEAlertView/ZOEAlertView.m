@@ -18,10 +18,6 @@
 #define koKButtonTitleTextColor     [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
 
 @interface ZOEAlertView()<UITextFieldDelegate,UITextViewDelegate>
-{
-    NSMutableArray              *alertViewArray;
-    ZOEWindow                   *alertWindow;
-}
 @property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *alertContentView;
 @property (nonatomic,strong) UILabel                    *titleLabel;
@@ -68,9 +64,6 @@
         _textFieldPlaceholder   = @"";
         _disAble                = YES;
         _zoeStyle               = ZOEAlertViewStyleAlert;
-        
-        alertViewArray  = [ZOEWindow shareStackArray];
-        alertWindow     = [ZOEWindow shareInstance];
         
         //添加子控件
         [self addSubview:self.alertContentView];
@@ -148,25 +141,25 @@
             [window endEditing:YES];
         }
         if (_alertViewStyle == ZOEAlertViewStyleDefault) {
-            if (!_isVisible)[alertWindow endEditing:NO];
+            if (!_isVisible)[[ZOEWindow shareInstance] endEditing:NO];
         }else {
             [self.messageContentView.textField becomeFirstResponder];
         }
         _isVisible = YES;
         //如果alertView重复调用show方法，先将数组中原来的对象移除，然后继续添加到数组的最后面，
-        for (UIView *alertVeiw in alertViewArray) {
+        for (UIView *alertVeiw in [ZOEWindow shareStackArray]) {
             if (alertVeiw == self) {
                 alertVeiw.hidden = NO;
-                [alertViewArray removeObject:alertVeiw];
+                [[ZOEWindow shareStackArray] removeObject:alertVeiw];
                 break;
             }
         }
-        [alertViewArray addObject:self];
-        [alertWindow addSubview:self];
-        alertWindow.hidden = NO;
+        [[ZOEWindow shareStackArray] addObject:self];
+        [[ZOEWindow shareInstance] addSubview:self];
+        [ZOEWindow shareInstance].hidden = NO;
         //有新的alertView被展现，所以要将前一个alertView暂时隐藏
-        if (alertViewArray.count-1>0) {
-            UIView *alertView = alertViewArray[alertViewArray.count-2];
+        if ([ZOEWindow shareStackArray].count-1>0) {
+            UIView *alertView = [ZOEWindow shareStackArray][[ZOEWindow shareStackArray].count-2];
             alertView.hidden = YES;
         }
         
@@ -177,7 +170,7 @@
         } completion:^(BOOL finished) {
         }];
     }else {
-        alertWindow.hidden = YES;
+        [ZOEWindow shareInstance].hidden = YES;
     }
 }
 
@@ -369,19 +362,19 @@
     if (_didDisBlock)_didDisBlock(_clickButtonIndex);
     
     //有可能不是按照数组倒序的顺序移除，所以需要遍历数组
-    //执行[alertViewArray removeObject:alertVeiw];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
+    //执行[[ZOEWindow shareStackArray] removeObject:alertVeiw];_myBlock引用会消失（只出现在某个系统），所以这边做一下缓存。
     void(^myBlockTemp)(NSInteger buttonIndex) = _myBlock;
-    for (UIView *alertVeiw in alertViewArray) {
+    for (UIView *alertVeiw in [ZOEWindow shareStackArray]) {
         if (alertVeiw == self) {
-            [alertViewArray removeObject:alertVeiw];
+            [[ZOEWindow shareStackArray] removeObject:alertVeiw];
             break;
         }
     }
     _myBlock = myBlockTemp;
     
     //将数组的最后一个alertView显示出来
-    if (alertViewArray.count>0) {
-        ZOEAlertView *alertView = alertViewArray[alertViewArray.count-1];
+    if ([ZOEWindow shareStackArray].count>0) {
+        ZOEAlertView *alertView = [ZOEWindow shareStackArray][[ZOEWindow shareStackArray].count-1];
         if ([ZOEAlertView isKindOfClass:[alertView class]]) {
             [alertView showWithBlock:alertView.myBlock animated:alertView.animated];
         }else {
@@ -390,8 +383,8 @@
     }
     
     //当数组中没有alertView时将父容器隐藏。
-    if (!alertViewArray.count) {
-        alertWindow.hidden = YES;
+    if (![ZOEWindow shareStackArray].count) {
+        [ZOEWindow shareInstance].hidden = YES;
     }
     
 }
@@ -524,8 +517,8 @@
 -(void)textFieldDidBeginEditing:(UITextField *)textField {
     self.oldCenterPoint = self.alertContentView.center;
     //获取textField在屏幕上的坐标
-    CGPoint textFieldPoint = [[textField superview]convertPoint:textField.frame.origin toView:alertWindow];
-    int offset = textFieldPoint.y + textField.frame.size.height - (alertWindow.frame.size.height-216.0)+90;//键盘高度216
+    CGPoint textFieldPoint = [[textField superview]convertPoint:textField.frame.origin toView:[ZOEWindow shareInstance]];
+    int offset = textFieldPoint.y + textField.frame.size.height - ([ZOEWindow shareInstance].frame.size.height-216.0)+90;//键盘高度216
     NSTimeInterval animationDuration = 0.30f;
     [UIView beginAnimations:@"ResizeForKeyboard" context:nil];
     [UIView setAnimationDuration:animationDuration];
@@ -542,11 +535,11 @@
     self.alertContentView.center = self.oldCenterPoint;
 }
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    [alertWindow endEditing:YES];
+    [[ZOEWindow shareInstance] endEditing:YES];
     return YES;
 }
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [alertWindow endEditing:YES];
+    [[ZOEWindow shareInstance] endEditing:YES];
 }
 
 
@@ -556,8 +549,8 @@
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     self.oldCenterPoint = self.alertContentView.center;
     //获取textField在屏幕上的坐标
-    CGPoint textFieldPoint = [[textView superview]convertPoint:textView.frame.origin toView:alertWindow];
-    int offset = textFieldPoint.y + textView.frame.size.height - (alertWindow.frame.size.height - 216.0)+90;//键盘高度216
+    CGPoint textFieldPoint = [[textView superview]convertPoint:textView.frame.origin toView:[ZOEWindow shareInstance]];
+    int offset = textFieldPoint.y + textView.frame.size.height - ([ZOEWindow shareInstance].frame.size.height - 216.0)+90;//键盘高度216
     
     NSTimeInterval animationDuration = 0.30f;
     [UIView beginAnimations:@"ResizeForKeyboard" context:nil];
@@ -581,7 +574,7 @@
     返回NO，就代表return键值失效，即页面上按下return，不会出现换行，如果为yes，则输入页面会换行
      **/
     if ([text isEqualToString:@"\n"]){ //
-        [alertWindow endEditing:YES];
+        [[ZOEWindow shareInstance] endEditing:YES];
         return NO;
     }
     
