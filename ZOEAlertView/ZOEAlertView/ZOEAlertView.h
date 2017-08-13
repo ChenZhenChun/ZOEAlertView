@@ -98,6 +98,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
  @param color  文字颜色
  @param buttonIndex 按钮索引，cancelButtonIndex=0 otherButtonTitles以此类推
  */
+//设置按钮颜色(如果是用addButtonWithTitle添加的按钮，颜色只能放在showWithBlock后面)
 - (void)setButtonTextColor:(UIColor *)color buttonIndex:(NSInteger)buttonIndex;
 
 /**

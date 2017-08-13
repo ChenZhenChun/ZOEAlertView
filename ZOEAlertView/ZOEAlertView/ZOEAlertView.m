@@ -38,6 +38,7 @@
 @property (nonatomic,copy) void(^didDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,assign) BOOL                       isRedraw_showWithBlock;//调用showWithBlock 方法时是否需要重绘，默认不需要重绘。
 @property (nonatomic,strong) UILabel                    *tipLabel;//提示性信息
+@property (nonatomic,assign) UIDeviceOrientation        currentOrientation;
 @end
 
 @implementation ZOEAlertView
@@ -46,6 +47,8 @@
 {
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
+        _currentOrientation = [UIDevice currentDevice].orientation;
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
         //默认参数初始化
         [self scale];
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
@@ -581,6 +584,21 @@
     return YES;
 }
 
+- (void)orientChange:(NSNotification *)noti {
+    UIInterfaceOrientation  orient = [UIApplication sharedApplication].statusBarOrientation;
+    CGAffineTransform transform;
+    if (orient == UIInterfaceOrientationLandscapeLeft) {
+        transform = CGAffineTransformMakeRotation(M_PI*1.5);
+    } else if (orient == UIInterfaceOrientationLandscapeRight) {
+        transform = CGAffineTransformMakeRotation(M_PI/2);
+    } else if (orient == UIInterfaceOrientationPortraitUpsideDown) {
+        transform = CGAffineTransformMakeRotation(-M_PI);
+    } else {
+        transform = CGAffineTransformIdentity;
+    }
+    self.alertContentView.transform = transform;
+}
+
 #pragma mark - Properties
 
 //alertView内容父容器
@@ -747,6 +765,10 @@
     }
     NSLog(@"ZOEAlertViewStyle is ZOEAlertViewStyleDefault, so the textField returns nil");
     return nil;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end
