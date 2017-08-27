@@ -16,6 +16,7 @@ static ZOEWindow *zoeWindow = nil;
         zoeWindow                 = [[ZOEWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
         zoeWindow.windowLevel     = UIWindowLevelAlert;
         zoeWindow.backgroundColor = [UIColor clearColor];
+        [zoeWindow setRootViewController:[[NSClassFromString(@"ZOEAlertViewRootViewController") alloc]init]];
         //获取系统delegate创建的window，将delegate window 转变回keyWindow，这样确保在外部调用keyWindow时都是系统创建的那个window。
         UIWindow *window          = [[[UIApplication sharedApplication]delegate]window];
         [zoeWindow makeKeyAndVisible];

@@ -48,7 +48,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @end
 
 @interface ZOEAlertView : UIView
-
+@property (nonatomic,readonly) UIView           *alertContentView;
 @property (nonatomic)        CGFloat            lineSpacing;//message lineSpacing,default is 5.
 @property (nonatomic)        CGFloat            titleFontSize;//titleLabel font size,default is 18.
 @property (nonatomic)        CGFloat            messageFontSize;//messageLabel font size,default is 15.
@@ -125,5 +125,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
  移除所有ZOEAlertView（不会触发block回调）
  */
 + (void)dismissAllZOEAlertView;
+
+- (void)configFrame;
 
 @end

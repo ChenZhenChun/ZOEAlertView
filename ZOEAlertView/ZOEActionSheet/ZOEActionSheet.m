@@ -109,7 +109,7 @@
             }
         }
         [[ZOEWindow shareStackArray] addObject:self];
-        [[ZOEWindow shareInstance] addSubview:self];
+        [[ZOEWindow shareInstance].rootViewController.view addSubview:self];
         [ZOEWindow shareInstance].hidden = NO;
         //有新的actionSheet被展现，所以要将前一个actionSheet暂时隐藏
         if ([ZOEWindow shareStackArray].count-1>0) {
@@ -171,6 +171,12 @@
             }
         }
     }
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    [self configFrame];
+    [self drawLine];
 }
 
 //绘制分割线

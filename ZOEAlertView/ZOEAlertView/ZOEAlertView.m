@@ -31,14 +31,12 @@
 @property (nonatomic,assign) BOOL                       animated;
 @property (nonatomic,assign) NSInteger                  clickButtonIndex;
 @property (nonatomic,assign) BOOL                       isVisible;//控件可见性
-@property (nonatomic)        CGPoint                    oldCenterPoint;
 @property (nonatomic,assign) ZOEStyle                   zoeStyle;
 @property (nonatomic,copy) void(^myBlock)(NSInteger buttonIndex);
 @property (nonatomic,copy) BOOL(^shouldDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,copy) void(^didDisBlock)(NSInteger buttonIndex);
 @property (nonatomic,assign) BOOL                       isRedraw_showWithBlock;//调用showWithBlock 方法时是否需要重绘，默认不需要重绘。
 @property (nonatomic,strong) UILabel                    *tipLabel;//提示性信息
-@property (nonatomic,assign) UIDeviceOrientation        currentOrientation;
 @end
 
 @implementation ZOEAlertView
@@ -47,8 +45,6 @@
 {
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
-        _currentOrientation = [UIDevice currentDevice].orientation;
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
         //默认参数初始化
         [self scale];
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
@@ -158,7 +154,7 @@
             }
         }
         [[ZOEWindow shareStackArray] addObject:self];
-        [[ZOEWindow shareInstance] addSubview:self];
+        [[ZOEWindow shareInstance].rootViewController.view addSubview:self];
         [ZOEWindow shareInstance].hidden = NO;
         //有新的alertView被展现，所以要将前一个alertView暂时隐藏
         if ([ZOEWindow shareStackArray].count-1>0) {
@@ -238,7 +234,7 @@
                 if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
                     textFieldH =44*_scale;
                 }
-                //alertViewH大于屏幕高度-300，那么对这个判断做等法判断出相等时messageContentView的高度
+                //alertViewH大于屏幕高度-200，那么对这个判断做等法判断出相等时messageContentView的高度
                 if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
                     self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
                     if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
@@ -256,6 +252,7 @@
                         self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height);
                     }
                 }
+                
                 //使用sizeToFit之后对齐方式失效，
                 self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
                 self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
@@ -294,6 +291,7 @@
         self.alertContentView.center = self.center;
     }
 }
+
 
 - (void)textFieldConfigByAlertViewStyleWithY:(CGFloat)y {
     if (self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
@@ -518,7 +516,6 @@
 #pragma mark - UITextFieldDelegate
 //开始编辑输入框的时候，软键盘出现，执行此事件
 -(void)textFieldDidBeginEditing:(UITextField *)textField {
-    self.oldCenterPoint = self.alertContentView.center;
     //获取textField在屏幕上的坐标
     CGPoint textFieldPoint = [[textField superview]convertPoint:textField.frame.origin toView:[ZOEWindow shareInstance]];
     int offset = textFieldPoint.y + textField.frame.size.height - ([ZOEWindow shareInstance].frame.size.height-216.0)+90;//键盘高度216
@@ -535,14 +532,16 @@
 }
 //输入框编辑完成以后，将视图恢复到原始状态
 -(void)textFieldDidEndEditing:(UITextField *)textField {
-    self.alertContentView.center = self.oldCenterPoint;
+    self.alertContentView.center = self.center;
 }
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [[ZOEWindow shareInstance] endEditing:YES];
+    self.alertContentView.center = self.center;
     return YES;
 }
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [[ZOEWindow shareInstance] endEditing:YES];
+    self.alertContentView.center = self.center;
 }
 
 
@@ -550,7 +549,6 @@
 #pragma mark -textViewDelegate
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    self.oldCenterPoint = self.alertContentView.center;
     //获取textField在屏幕上的坐标
     CGPoint textFieldPoint = [[textView superview]convertPoint:textView.frame.origin toView:[ZOEWindow shareInstance]];
     int offset = textFieldPoint.y + textView.frame.size.height - ([ZOEWindow shareInstance].frame.size.height - 216.0)+90;//键盘高度216
@@ -568,7 +566,7 @@
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
-    self.alertContentView.center = self.oldCenterPoint;
+    self.alertContentView.center = self.center;
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
@@ -582,21 +580,6 @@
     }
     
     return YES;
-}
-
-- (void)orientChange:(NSNotification *)noti {
-    UIInterfaceOrientation  orient = [UIApplication sharedApplication].statusBarOrientation;
-    CGAffineTransform transform;
-    if (orient == UIInterfaceOrientationLandscapeLeft) {
-        transform = CGAffineTransformMakeRotation(M_PI*1.5);
-    } else if (orient == UIInterfaceOrientationLandscapeRight) {
-        transform = CGAffineTransformMakeRotation(M_PI/2);
-    } else if (orient == UIInterfaceOrientationPortraitUpsideDown) {
-        transform = CGAffineTransformMakeRotation(-M_PI);
-    } else {
-        transform = CGAffineTransformIdentity;
-    }
-    self.alertContentView.transform = transform;
 }
 
 #pragma mark - Properties
