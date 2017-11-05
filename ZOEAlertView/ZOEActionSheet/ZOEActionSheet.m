@@ -35,7 +35,7 @@
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
         //默认参数初始化
-        [self scale];
+        self.scale = 1;
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
         _titleFontSize          = ktitleFontSize;
         _buttonFontSize         = kbuttonFontSize;

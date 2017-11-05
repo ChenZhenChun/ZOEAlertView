@@ -18,7 +18,10 @@
 #define koKButtonTitleTextColor     [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
 
 @interface ZOEAlertView()<UITextFieldDelegate,UITextViewDelegate>
-@property (nonatomic)        CGFloat                    scale;
+{
+    BOOL _keyboardIsVisible;
+}
+@property (nonatomic,assign) CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *alertContentView;
 @property (nonatomic,strong) UILabel                    *titleLabel;
 @property (nonatomic,strong) MessageContentView         *messageContentView;
@@ -46,8 +49,12 @@
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
         //默认参数初始化
-        [self scale];
+        self.scale = 1;
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+        [center  addObserver:self selector:@selector(keyboardWillShow)  name:UIKeyboardWillShowNotification  object:nil];
+        [center addObserver:self selector:@selector(keyboardWillHide)  name:UIKeyboardWillHideNotification object:nil];
+        _keyboardIsVisible = NO;
         _lineSpacing            = klineSpacing;
         _titleFontSize          = ktitleFontSize;
         _messageFontSize        = kmessageFontSize;
@@ -463,8 +470,12 @@
 
 //处理提示语信息动画
 - (void)handleTipViewAnimate {
-    UIView *view = [self keyboardView];
-    [view addSubview:self.tipLabel];
+    if (self.keyboardIsVisible) {
+        UIView *keyview=[self keyboardView];
+        [keyview addSubview:self.tipLabel];
+    }else {
+        [self addSubview:self.tipLabel];
+    }
     __weak typeof(self) weakSelf = self;
     [UIView animateWithDuration:0.5 delay:2 options:UIViewAnimationOptionShowHideTransitionViews animations:^{
         weakSelf.tipLabel.alpha = 0;
@@ -473,41 +484,30 @@
     }];
 }
 
-//获取键盘view
 - (UIView *)keyboardView {
     UIWindow* tempWindow;
-    //Because we cant get access to the UIKeyboard throught the SDK we will just use UIView.
-    //UIKeyboard is a subclass of UIView anyways
     UIView* keyboard;
-    
-    //Check each window in our application
     for(int c = 0; c < [[[UIApplication sharedApplication] windows] count]; c ++) {
-        //Get a reference of the current window
         tempWindow = [[[UIApplication sharedApplication] windows] objectAtIndex:c];
-        
-        //Get a reference of the current view
         for(int i = 0; i < [tempWindow.subviews count]; i++) {
             keyboard = [tempWindow.subviews objectAtIndex:i];
             if([[keyboard description] hasPrefix:@"(lessThen)UIKeyboard"] == YES) {
-                //If we get to this point, then our UIView "keyboard" is referencing our keyboard.
                 return keyboard;
             }
         }
         
-        for(UIView* potentialKeyboard in tempWindow.subviews) {
-            // if the real keyboard-view is found, remember it.
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
-                if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
-                    keyboard = potentialKeyboard;
-            }
-            else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
-                if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
-                    keyboard = potentialKeyboard;
-            }
-            else {
-                if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
-                    keyboard = potentialKeyboard;
-            }
+        for(UIView* potentialKeyboard in tempWindow.subviews)
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+            if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
+            keyboard = potentialKeyboard;
+        }
+        else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+            if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+            keyboard = potentialKeyboard;
+        }
+        else {
+            if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+            keyboard = potentialKeyboard;
         }
     }
     return keyboard;
@@ -542,6 +542,18 @@
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [[ZOEWindow shareInstance] endEditing:YES];
     self.alertContentView.center = self.center;
+}
+
+- (void)keyboardWillShow {
+    _keyboardIsVisible = YES;
+}
+
+- (void)keyboardWillHide {
+    _keyboardIsVisible = NO;
+}
+
+- (BOOL)keyboardIsVisible {
+    return _keyboardIsVisible;
 }
 
 
