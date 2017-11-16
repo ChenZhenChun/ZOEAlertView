@@ -11,7 +11,6 @@
 
 @interface ZOEActionSheet()
 
-@property (nonatomic)        CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *actionSheetContentView;
 @property (nonatomic,strong) UIView                     *contentView;
 @property (nonatomic,strong) UIButton                   *cancelButton;
@@ -29,6 +28,8 @@
 @end
 
 @implementation ZOEActionSheet
+@synthesize buttonHeight = _buttonHeight;
+@synthesize scale   = _scale;
 //初始化
 - (instancetype)initWithTitle:(NSString*)title  cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ...
 {
@@ -138,7 +139,7 @@
 - (void)configFrame {
     //必须至少有一个操作按钮才能展现控件
     if (self.otherButtonTitles.count) {
-        CGFloat allBtnH = kBtnH*_otherButtonTitles.count;
+        CGFloat allBtnH = self.buttonHeight*_otherButtonTitles.count;
         CGFloat actionSheeetViewH = allBtnH+(_cancelButton?20*_scale:10*_scale);
         
         //title区域frame设置
@@ -146,7 +147,7 @@
             actionSheeetViewH += 20*_scale+_titleLabel.font.pointSize;
             _titleLabel.frame = CGRectMake(0,10*_scale,self.bounds.size.width-30*_scale,_titleLabel.font.pointSize);
         }
-        CGFloat contentViewH = actionSheeetViewH-(_cancelButton?(kBtnH+20*_scale):10*_scale);
+        CGFloat contentViewH = actionSheeetViewH-(_cancelButton?(self.buttonHeight+20*_scale):10*_scale);
         //按钮操作区frame设置
         self.actionSheetContentView.frame = CGRectMake(15*_scale,
                                                        self.bounds.size.height-actionSheeetViewH,
@@ -160,14 +161,14 @@
             UIButton *btn = _otherButtonTitles[i];
             if (btn.tag == kBtnTagAppend) {
                 btn.frame = CGRectMake(0,
-                                       _actionSheetContentView.frame.size.height-(10*_scale+kBtnH),
+                                       _actionSheetContentView.frame.size.height-(10*_scale+self.buttonHeight),
                                        _actionSheetContentView.frame.size.width,
-                                       kBtnH);
+                                       self.buttonHeight);
             }else {
                 btn.frame = CGRectMake(0,
-                                       contentViewH-(btn.tag-kBtnTagAppend)*kBtnH,
+                                       contentViewH-(btn.tag-kBtnTagAppend)*self.buttonHeight,
                                        _contentView.frame.size.width,
-                                       kBtnH);
+                                       self.buttonHeight);
             }
         }
     }
@@ -185,7 +186,7 @@
         if (view.tag == 74129)[view removeFromSuperview];
     }
     //设置按钮索引、绘制分割线
-    CGFloat contentViewH = kBtnH*(_cancelButton?(_otherButtonTitles.count-1):_otherButtonTitles.count)+(_titleLabel?20*_scale+_titleLabel.font.pointSize:0);
+    CGFloat contentViewH = self.buttonHeight*(_cancelButton?(_otherButtonTitles.count-1):_otherButtonTitles.count)+(_titleLabel?20*_scale+_titleLabel.font.pointSize:0);
     int buttonIndex = (_cancelButtonTitle&&_cancelButtonTitle.length>0)?0:1;
     for (int i=0; i<self.otherButtonTitles.count; i++) {
         UIButton *btn = _otherButtonTitles[i];
@@ -199,7 +200,7 @@
             break;
         }
         UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,
-                                                               contentViewH-(btn.tag-kBtnTagAppend)*kBtnH,
+                                                               contentViewH-(btn.tag-kBtnTagAppend)*self.buttonHeight,
                                                                self.bounds.size.width-30*_scale,
                                                                0.5)];
         line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
@@ -360,7 +361,10 @@
     return _scale;
 }
 
-
+- (void)setScale:(CGFloat)scale {
+    _scale = scale;
+    _isRedraw_showWithBlock = YES;
+}
 
 #pragma mark - setter方法设置属性
 
@@ -396,6 +400,17 @@
             [btn setTitleColor:_buttonTextColor forState:UIControlStateNormal];
         }
     }
+}
+
+- (void)setButtonHeight:(CGFloat)buttonHeight {
+    _buttonHeight = buttonHeight;
+    _isRedraw_showWithBlock = YES;
+}
+
+- (CGFloat)buttonHeight {
+    if (_buttonHeight) return _buttonHeight;
+    _buttonHeight = kBtnH;
+    return _buttonHeight;
 }
 
 @end

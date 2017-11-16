@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "ZOEWindow.h"
 
-#define kBtnH (56*_scale)
+#define kBtnH (50*_scale)
 #define kBtnTagAppend 200  //tag从0开始容易和默认的tag冲突，所以额外累加一个参数
 #define ktitleFontSize              (18*_scale)
 #define kbuttonFontSize             (18*_scale)

@@ -21,7 +21,6 @@
 {
     BOOL _keyboardIsVisible;
 }
-@property (nonatomic,assign) CGFloat                    scale;
 @property (nonatomic,strong) UIView                     *alertContentView;
 @property (nonatomic,strong) UILabel                    *titleLabel;
 @property (nonatomic,strong) MessageContentView         *messageContentView;
@@ -43,13 +42,15 @@
 @end
 
 @implementation ZOEAlertView
+@synthesize buttonHeight = _buttonHeight;
+@synthesize scale   = _scale;
 //初始化
 - (instancetype)initWithTitle:(NSString*)title message:(NSString*)message  cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ...
 {
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
         //默认参数初始化
-        self.scale = 1;
+        [self scale];
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center  addObserver:self selector:@selector(keyboardWillShow)  name:UIKeyboardWillShowNotification  object:nil];
@@ -205,7 +206,7 @@
 - (void)configFrame {
     //必须至少有一个操作按钮才能展现控件
     if (self.otherButtonTitles.count) {
-        CGFloat allBtnH = _otherButtonTitles.count<3?kBtnH:kBtnH*_otherButtonTitles.count;
+        CGFloat allBtnH = _otherButtonTitles.count<3?self.buttonHeight:self.buttonHeight*_otherButtonTitles.count;
         CGFloat alertViewH = allBtnH+21*_scale;//底部按钮操作区域高度+21点的空白
         
         //title区域frame设置
@@ -286,12 +287,12 @@
         if (_otherButtonTitles.count == 2) {
             UIButton *btn = _otherButtonTitles[0];
             UIButton *btn1 = _otherButtonTitles[1];
-            btn.frame = CGRectMake(0,0,kalertViewW/2.0,kBtnH);
-            btn1.frame = CGRectMake(kalertViewW/2.0,0,kalertViewW/2.0,kBtnH);
+            btn.frame = CGRectMake(0,0,kalertViewW/2.0,self.buttonHeight);
+            btn1.frame = CGRectMake(kalertViewW/2.0,0,kalertViewW/2.0,self.buttonHeight);
         }else {
             for (int i=0;i<_otherButtonTitles.count;i++) {
                 UIButton *btn = _otherButtonTitles[i];
-                btn.frame = CGRectMake(0,(_otherButtonTitles.count-1-i)*kBtnH,kalertViewW,kBtnH);
+                btn.frame = CGRectMake(0,(_otherButtonTitles.count-1-i)*self.buttonHeight,kalertViewW,self.buttonHeight);
             }
         }
         _alertContentView.frame = CGRectMake(0,0,kalertViewW,alertViewH);
@@ -330,7 +331,7 @@
         line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
         line.tag = 74129;
         [self.operationalView addSubview:line];
-        UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(kalertViewW/2.0,0,0.5,kBtnH)];
+        UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(kalertViewW/2.0,0,0.5,self.buttonHeight)];
         line1.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
         [self.operationalView addSubview:line1];
         
@@ -339,7 +340,7 @@
             UIButton *btn = _otherButtonTitles[i];
             btn.tag = kBtnTagAppend+buttonIndex++;
             [self.operationalView addSubview:btn];
-            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0+i*kBtnH,kalertViewW,0.5)];
+            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0,0+i*self.buttonHeight,kalertViewW,0.5)];
             line.backgroundColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1];
             line.tag = 74129;
             [self.operationalView addSubview:line];
@@ -670,10 +671,15 @@
 - (CGFloat)scale {
     if (_scale == 0) {
         _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
+//        _scale = [UIScreen mainScreen].bounds.size.width/375.0;
     }
     return _scale;
 }
 
+- (void)setScale:(CGFloat)scale {
+    _scale = scale;
+    _isRedraw_showWithBlock = YES;
+}
 
 
 #pragma mark - setter方法设置属性
@@ -760,6 +766,17 @@
     }
     NSLog(@"ZOEAlertViewStyle is ZOEAlertViewStyleDefault, so the textField returns nil");
     return nil;
+}
+
+- (void)setButtonHeight:(CGFloat)buttonHeight {
+    _buttonHeight = buttonHeight;
+    _isRedraw_showWithBlock = YES;
+}
+
+- (CGFloat)buttonHeight {
+    if (_buttonHeight) return _buttonHeight;
+    _buttonHeight = kBtnH;
+    return _buttonHeight;
 }
 
 - (void)dealloc {

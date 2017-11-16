@@ -55,6 +55,8 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @property (nonatomic)        CGFloat                titleFontSize;//titleLabel font size,default is 18.
 @property (nonatomic)        CGFloat                messageFontSize;//messageLabel font size,default is 15.
 @property (nonatomic)        CGFloat                buttonFontSize;//uibutton font size,default is 18.
+@property (nonatomic)        CGFloat                buttonHeight;//default is 50
+@property (nonatomic,assign) CGFloat                scale;//界面缩放比例
 @property (nonatomic,strong) UIColor                *titleTextColor;
 @property (nonatomic,strong) UIColor                *messageTextColor;
 @property (nonatomic,strong) UIColor                *buttonTextColor;
