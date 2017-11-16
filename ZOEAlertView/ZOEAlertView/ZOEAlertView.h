@@ -48,20 +48,22 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @end
 
 @interface ZOEAlertView : UIView
-@property (nonatomic,readonly) UIView           *alertContentView;
-@property (nonatomic)        CGFloat            lineSpacing;//message lineSpacing,default is 5.
-@property (nonatomic)        CGFloat            titleFontSize;//titleLabel font size,default is 18.
-@property (nonatomic)        CGFloat            messageFontSize;//messageLabel font size,default is 15.
-@property (nonatomic)        CGFloat            buttonFontSize;//uibutton font size,default is 18.
-@property (nonatomic,strong) UIColor            *titleTextColor;
-@property (nonatomic,strong) UIColor            *messageTextColor;
-@property (nonatomic,strong) UIColor            *buttonTextColor;
-@property (nonatomic,readonly)NSInteger         cancelButtonIndex;
-@property (nonatomic)        NSTextAlignment    messageTextAlignment;//messageLabel TextAlignment,default is NSTextAlignmentCenter
-@property (nonatomic,assign) ZOEAlertViewStyle  alertViewStyle;
-@property (nonatomic,copy)   NSString           *textFieldPlaceholder;
-@property (nonatomic,assign) BOOL               disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
-@property (nonatomic,readonly)UITextField       *textField;
+@property (nonatomic,readonly) UIView               *alertContentView;
+@property (nonatomic,readonly) UILabel              *titleLabel;
+@property (nonatomic,readonly) MessageContentView   *messageContentView;
+@property (nonatomic)        CGFloat                lineSpacing;//message lineSpacing,default is 5.
+@property (nonatomic)        CGFloat                titleFontSize;//titleLabel font size,default is 18.
+@property (nonatomic)        CGFloat                messageFontSize;//messageLabel font size,default is 15.
+@property (nonatomic)        CGFloat                buttonFontSize;//uibutton font size,default is 18.
+@property (nonatomic,strong) UIColor                *titleTextColor;
+@property (nonatomic,strong) UIColor                *messageTextColor;
+@property (nonatomic,strong) UIColor                *buttonTextColor;
+@property (nonatomic,readonly)NSInteger             cancelButtonIndex;
+@property (nonatomic)        NSTextAlignment        messageTextAlignment;//messageLabel TextAlignment,default is NSTextAlignmentCenter
+@property (nonatomic,assign) ZOEAlertViewStyle      alertViewStyle;
+@property (nonatomic,copy)   NSString               *textFieldPlaceholder;
+@property (nonatomic,assign) BOOL                   disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
+@property (nonatomic,readonly)UITextField           *textField;
 
 //这个代理不是必须要设置的，只有MessageContentView区域需要自定义时才需要设置。
 @property (nonatomic,assign) id<ZOEAlertViewDelegate> delegate;
