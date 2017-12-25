@@ -36,7 +36,7 @@
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
     if (self) {
         //默认参数初始化
-        self.scale = 1;
+        [self scale];
         self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
         _titleFontSize          = ktitleFontSize;
         _buttonFontSize         = kbuttonFontSize;
@@ -304,6 +304,12 @@
     }
 }
 
++ (NSArray *)getAllActionSheet {
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@" zoeStyle = 1 "];
+    NSArray *data = [[ZOEWindow shareStackArray] filteredArrayUsingPredicate:predicate];
+    return data;
+}
+
 #pragma mark - Properties
 
 //actionSheet内容父容器
@@ -357,6 +363,7 @@
 - (CGFloat)scale {
     if (_scale == 0) {
         _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
+        if (_scale>1) return _scale = 1;
     }
     return _scale;
 }

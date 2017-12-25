@@ -66,6 +66,7 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @property (nonatomic,copy)   NSString               *textFieldPlaceholder;
 @property (nonatomic,assign) BOOL                   disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
 @property (nonatomic,readonly)UITextField           *textField;
+@property (nonatomic,copy) NSString                 *alertDescription;
 
 //这个代理不是必须要设置的，只有MessageContentView区域需要自定义时才需要设置。
 @property (nonatomic,assign) id<ZOEAlertViewDelegate> delegate;
@@ -129,7 +130,11 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
  移除所有ZOEAlertView（不会触发block回调）
  */
 + (void)dismissAllZOEAlertView;
-
-- (void)configFrame;
+/**
+ 获取单前所有AlertView
+ 
+ @return AllAlertView
+ */
++ (NSArray *)getAllAlertView;
 
 @end

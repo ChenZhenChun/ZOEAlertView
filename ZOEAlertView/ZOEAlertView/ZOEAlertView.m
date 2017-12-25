@@ -45,6 +45,7 @@
 @synthesize buttonHeight = _buttonHeight;
 @synthesize scale   = _scale;
 //初始化
+
 - (instancetype)initWithTitle:(NSString*)title message:(NSString*)message  cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ...
 {
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
@@ -439,6 +440,12 @@
     }
 }
 
++ (NSArray *)getAllAlertView {
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@" zoeStyle = 0 "];
+    NSArray *data = [[ZOEWindow shareStackArray] filteredArrayUsingPredicate:predicate];
+    return data;
+}
+
 //处理键盘遮挡输入框的问题
 - (void)handleKeyboard:(UIView *)textFieldOrTextView {
     if ([textFieldOrTextView isKindOfClass:[UITextField class]]) {
@@ -498,18 +505,18 @@
         }
         
         for(UIView* potentialKeyboard in tempWindow.subviews)
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
-            if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
-            keyboard = potentialKeyboard;
-        }
-        else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
-            if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
-            keyboard = potentialKeyboard;
-        }
-        else {
-            if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
-            keyboard = potentialKeyboard;
-        }
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+                if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else {
+                if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+                    keyboard = potentialKeyboard;
+            }
     }
     return keyboard;
 }
@@ -671,6 +678,7 @@
 - (CGFloat)scale {
     if (_scale == 0) {
         _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
+        if (_scale>1) _scale = 1;
 //        _scale = [UIScreen mainScreen].bounds.size.width/375.0;
     }
     return _scale;

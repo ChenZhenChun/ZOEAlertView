@@ -17,6 +17,7 @@
 @property (nonatomic,strong) UIColor            *buttonTextColor;
 @property (nonatomic,readonly)NSInteger         cancelButtonIndex;
 @property (nonatomic,assign) BOOL               disAble;//是否可被代码dismiss（不点击操作button）,default is Yes
+@property (nonatomic,copy) NSString             *actionDescription;
 
 - (instancetype)initWithTitle:(NSString *)title cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
 
@@ -47,4 +48,11 @@
  移除所有ZOEAlertView（不会触发block回调）
  */
 + (void)dismissAllZOEActionSheet;
+
+/**
+ 获取单前所有actionSheet
+ 
+ @return AllActionSheet
+ */
++ (NSArray *)getAllActionSheet;
 @end
