@@ -32,7 +32,14 @@
 }
 
 - (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message {
-    self.attrStr = [self.attrStr initWithString:message];
+    if ([message containsString:@"<html"]&&[message containsString:@"</html"]) {
+        self.attrStr = [self.attrStr initWithData:[message dataUsingEncoding:NSUnicodeStringEncoding]
+                                          options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType}
+                               documentAttributes:nil error:nil];
+    }else {
+        self.attrStr = [self.attrStr initWithString:message];
+        
+    }
     //调整行间距
     [_attrStr addAttribute:NSParagraphStyleAttributeName value:self.paragraphStyle range:NSMakeRange(0,_attrStr.string.length)];
     if (_messageLabel)_messageLabel.attributedText = _attrStr;
