@@ -150,8 +150,10 @@
         }
         if (_alertViewStyle == ZOEAlertViewStyleDefault) {
             if (!_isVisible)[[ZOEWindow shareInstance] endEditing:NO];
-        }else {
+        }else if (_alertViewStyle == ZOEAlertViewStyleSecureTextInput||_alertViewStyle == ZOEAlertViewStylePlainTextInput) {
             [self.messageContentView.textField becomeFirstResponder];
+        }else if (_alertViewStyle == ZOEAlertViewStyleTextViewInput){
+            [self.messageContentView.textView becomeFirstResponder];
         }
         _isVisible = YES;
         //如果alertView重复调用show方法，先将数组中原来的对象移除，然后继续添加到数组的最后面，
@@ -240,8 +242,11 @@
                 [self.messageContentView attrStrWithMessage:_message];
                 [self.messageContentView.messageLabel sizeToFit];
                 CGFloat textFieldH = 0;
-                if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+                if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
+                    ||self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
                     textFieldH =44*_scale;
+                }else if (_alertViewStyle == ZOEAlertViewStyleTextViewInput) {
+                    textFieldH =98*_scale;
                 }
                 //alertViewH大于屏幕高度-200，那么对这个判断做等法判断出相等时messageContentView的高度
                 if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
@@ -313,6 +318,8 @@
         self.messageContentView.textField.placeholder = _textFieldPlaceholder;
         self.messageContentView.textField.font = [UIFont systemFontOfSize:_messageFontSize];
         self.messageContentView.textField.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,34*_scale);
+    }else if (self.alertViewStyle == ZOEAlertViewStyleTextViewInput) {
+        self.messageContentView.textView.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,98*_scale);
     }
 }
 
@@ -753,23 +760,30 @@
 
 - (void)setAlertViewStyle:(ZOEAlertViewStyle)alertViewStyle {
     _alertViewStyle = alertViewStyle;
-    if (_alertViewStyle != ZOEAlertViewStyleDefault) {
+    if (_alertViewStyle == ZOEAlertViewStyleSecureTextInput
+        ||_alertViewStyle == ZOEAlertViewStylePlainTextInput) {
         self.messageContentView.textField.delegate = self;
         [self.alertContentView addSubview:self.messageContentView];
         [self.messageContentView addSubview:self.messageContentView.textField];
+    }else if (_alertViewStyle == ZOEAlertViewStyleTextViewInput) {
+        self.messageContentView.textView.delegate = self;
+        [self.alertContentView addSubview:self.messageContentView];
+        [self.messageContentView addSubview:self.messageContentView.textView];
     }
     [self configFrame];
 }
 
 - (void)setTextFieldPlaceholder:(NSString *)textFieldPlaceholder {
     _textFieldPlaceholder = textFieldPlaceholder;
-    if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+    if (_alertViewStyle == ZOEAlertViewStyleSecureTextInput
+        ||_alertViewStyle == ZOEAlertViewStylePlainTextInput) {
         self.messageContentView.textField.placeholder = _textFieldPlaceholder;
     }
 }
 
 - (UITextField *)textField {
-    if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
+    if (_alertViewStyle == ZOEAlertViewStyleSecureTextInput
+        ||_alertViewStyle == ZOEAlertViewStylePlainTextInput) {
         return self.messageContentView.textField;
     }
     NSLog(@"ZOEAlertViewStyle is ZOEAlertViewStyleDefault, so the textField returns nil");

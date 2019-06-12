@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 s.name              = "ZOEAlertView"
 
 #更新代码必须修改版本号
-s.version           = "1.3.6"
+s.version           = "1.3.7"
 s.summary           = "It is a ZOEAlertView used on iOS, which implement by Objective-C"
 s.description       = <<-DESC
 It is a ZOEAlertView used on iOS, which implement by Objective-C.
@@ -30,6 +30,8 @@ s.subspec 'ZOEAlertView' do |ss|
 ss.source_files = 'ZOEAlertView/ZOEAlertView/*.{h,m}'
 ss.public_header_files = 'ZOEAlertView/ZOEAlertView/*.h'
 ss.dependency 'ZOEAlertView/ZOECommon'
+ss.dependency 'ZOEPlaceholderTextView'
+ss.user_target_xcconfig = {'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'=>'YES'}
 end
 
 #ZOEActionSheet模块

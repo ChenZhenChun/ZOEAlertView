@@ -64,4 +64,16 @@
     return _textField;
 }
 
+- (ZOEPlaceholderTextView *)textView {
+    if (_textView) return _textView;
+    _textView = [[ZOEPlaceholderTextView alloc] initWithFrame:CGRectMake(0,0,270,98)];
+    _textView.charVerifyType = Length;
+    _textView.backgroundColor = [UIColor colorWithRed:245/255.0f green:245/255.0f blue:245/255.0f alpha:1.0f];
+    _textView.layer.cornerRadius = 5;
+    _textView.layer.masksToBounds = YES;
+    _textView.font = [UIFont systemFontOfSize:14];
+    [_textView setValue:[UIFont systemFontOfSize:14] forKeyPath:@"placeHolderLabel.font"];
+    return _textView;
+}
+
 @end

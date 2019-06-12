@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ZOEPlaceholderTextView.h"
 
 /**
   PS:MessageContentView的宽度是一个固定值
@@ -16,7 +17,7 @@
 @interface MessageContentView : UIView
 @property (nonatomic,strong) UILabel                    *messageLabel;
 @property (nonatomic,strong) UITextField                *textField;
-
+@property (nonatomic,strong) ZOEPlaceholderTextView     *textView;
 @property (nonatomic,strong) NSMutableParagraphStyle    *paragraphStyle;
 - (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message;
 @end

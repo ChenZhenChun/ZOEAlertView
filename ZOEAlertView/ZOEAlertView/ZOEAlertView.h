@@ -12,7 +12,8 @@
 typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
     ZOEAlertViewStyleDefault = 0,
     ZOEAlertViewStyleSecureTextInput,
-    ZOEAlertViewStylePlainTextInput
+    ZOEAlertViewStylePlainTextInput,
+    ZOEAlertViewStyleTextViewInput
 };
 
 @class ZOEAlertView;
