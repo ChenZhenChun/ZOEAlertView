@@ -19,33 +19,33 @@ typedef NS_ENUM(NSInteger, ZOEAlertViewStyle) {
 @class ZOEAlertView;
 
 /**
- alertView中的MessageContentView区域是可以高度定制的（如果不自定义默认情况下有三种模板ZOEAlertViewStyle）；
- ZOEAlertView通过代理的形式将MessageContentView区域委托出去
- 代理对象只要通过heightForMessageContentView协议设置MessageContentView的高度，
- 通过messageContentViewWithZOEAlertView协议设置MessageContentView的实例，就可以对MessageContentView
+ alertView中的MsgCustomContentView区域是可以高度定制的（如果不自定义默认情况下有三种模板ZOEAlertViewStyle）；
+ ZOEAlertView通过代理的形式将MsgCustomContentView区域委托出去
+ 代理对象只要通过heightForMessageContentView协议设置MsgCustomContentView的高度，
+ 通过messageContentViewWithZOEAlertView协议设置MsgCustomContentView的实例，就可以对MsgCustomContentView
  实现自定义
- 调用handleKeyboard:方法可以解决自定义MessageContentView中输入框被键盘遮挡的问题。
-     _______________________
-    |         title         |
-    |_______________________|
-    | _____________________ |
-    ||                     ||
-    ||                     ||
-    ||                     ||
-    || MessageContentView  ||
-    ||                     ||
-    ||                     ||
-    ||_____________________||
-    |_______________________|
-    |           |           |
-    |   cancel  |    OK     |
-    |___________|___________|
-
+ 调用handleKeyboard:方法可以解决自定义msgCustomContentView中输入框被键盘遮挡的问题。
+ _______________________
+ |         title         |
+ |_______________________|
+ | _____________________ |
+ ||                     ||
+ || MessageContentView  ||
+ ||_____________________||
+ | _____________________ |
+ ||                     ||
+ || MsgCustomContentView||
+ ||_____________________||
+ |_______________________|
+ |           |           |
+ |   cancel  |    OK     |
+ |___________|___________|
+ 
  */
 @protocol ZOEAlertViewDelegate <NSObject>
 @optional
 - (CGFloat)heightForMessageContentView;//自定messageContentView的高度；
-- (MessageContentView *)messageContentViewWithZOEAlertView:(ZOEAlertView *)alertView;//获取messageContentView实例；
+- (UIView *)messageContentViewWithZOEAlertView:(ZOEAlertView *)alertView;//获取messageContentView实例；
 @end
 
 @interface ZOEAlertView : UIView
