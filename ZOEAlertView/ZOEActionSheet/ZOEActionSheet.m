@@ -378,7 +378,7 @@
 - (void)setTitleFontSize:(CGFloat)titleFontSize {
     if (_titleLabel) {
         _titleFontSize = titleFontSize;
-        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize*_scale];
+        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
         [self configFrame];
         [self drawLine];
     }
@@ -386,7 +386,7 @@
 
 - (void)setButtonFontSize:(CGFloat)buttonFontSize {
     if (self.otherButtonTitles) {
-        _buttonFontSize = buttonFontSize*_scale;
+        _buttonFontSize = buttonFontSize;
         for (UIButton *btn in _otherButtonTitles) {
             [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
         }

@@ -8,14 +8,15 @@
 
 #import "ZOEAlertView.h"
 #import "ZOECommonHead.h"
+#import "NSObject+MJKeyValue.h"
 
 #define kalertViewW (300*_scale)
 
-//默认属性参数
-#define klineSpacing                (5*_scale)
-#define kmessageFontSize            (15*_scale)
-#define kmessageTextColor           [UIColor colorWithRed:34/255.0 green:34/255.0 blue:34/255.0 alpha:1]
-#define koKButtonTitleTextColor     [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
+//默认属性参数``
+#define klineSpacing                (5)
+#define kmessageFontSize            (15)
+#define kmessageTextColor           [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1]
+#define koKButtonTitleTextColor     [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51 alpha:1]
 
 @interface ZOEAlertView()<UITextFieldDelegate,UITextViewDelegate>
 {
@@ -46,7 +47,6 @@
 @synthesize buttonHeight = _buttonHeight;
 @synthesize scale   = _scale;
 //初始化
-
 - (instancetype)initWithTitle:(NSString*)title message:(NSString*)message  cancelButtonTitle:(NSString*)cancelButtonTitle otherButtonTitles:(NSString*)otherButtonTitles, ...
 {
     self = [super initWithFrame:[UIScreen mainScreen].bounds];
@@ -82,11 +82,12 @@
             _titleLabel.text = _title;
         }
         //添加消息详细Label
+        _message = [message mj_JSONString];
         if (_message&&_message.length>0) {
-            self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             self.messageContentView.messageLabel.textColor      = _messageTextColor;
             self.messageContentView.paragraphStyle.lineSpacing  = _lineSpacing;
             [self.messageContentView attrStrWithMessage:_message];
+            self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             [self.messageContentView addSubview:self.messageContentView.messageLabel];
             [_alertContentView addSubview:self.messageContentView];
         }
@@ -207,25 +208,27 @@
     //必须至少有一个操作按钮才能展现控件
     if (self.otherButtonTitles.count) {
         CGFloat allBtnH = _otherButtonTitles.count<3?self.buttonHeight:self.buttonHeight*_otherButtonTitles.count;
-        CGFloat alertViewH = allBtnH+21*_scale;//底部按钮操作区域高度+21点的空白
+        CGFloat alertViewH = allBtnH+20;//底部按钮操作区域高度+20点的空白
         
         //title区域frame设置
         if (_titleLabel) {
-            alertViewH += 21*_scale+_titleLabel.font.pointSize;
-            _titleLabel.frame = CGRectMake(15*_scale,21*_scale,kalertViewW-30*_scale,_titleLabel.font.pointSize);
+            alertViewH += 30+_titleLabel.font.pointSize;
+            _titleLabel.frame = CGRectMake(15*_scale,30,kalertViewW-30*_scale,_titleLabel.font.pointSize);
         }
         
         //message区域frame设置
         //默认messageContentView模板frame设置
         if (_message&&_message.length>0) {
-            CGFloat y = 28*_scale;
-            alertViewH += 28*_scale;
+            CGFloat y = 30;
+            alertViewH += 30;
             if (_titleLabel) {
-                y = (21+28)*_scale+_titleLabel.font.pointSize;
+                y = (30+20)+_titleLabel.font.pointSize;
+                alertViewH -= 10;
             }
             self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
             self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
             [self.messageContentView attrStrWithMessage:_message];
+            self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             [self.messageContentView.messageLabel sizeToFit];
             CGFloat textFieldH = 0;
             if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
@@ -259,10 +262,11 @@
             alertViewH += self.messageContentView.frame.size.height;
         }else {
             if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                CGFloat y = 28*_scale;
-                alertViewH += 28*_scale;
+                CGFloat y = 30;
+                alertViewH += 30;
                 if (_titleLabel) {
-                    y = (21+28)*_scale+_titleLabel.font.pointSize;
+                    y = (30+20)*_scale+_titleLabel.font.pointSize;
+                    alertViewH -= 10;
                 }
                 self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,34*_scale);
                 [self textFieldConfigByAlertViewStyleWithY:-10*_scale];
@@ -274,16 +278,17 @@
         
         
         if ([self.delegate respondsToSelector:@selector(heightForMessageContentView)]) {
-            //代理对象自定的messageContentView模板frame设置
-            CGFloat y = 28*_scale;
-            alertViewH += 28*_scale;
+            //代理视图
+            CGFloat y = 30;
             if (_titleLabel) {
-                y = (21+28)*_scale+_titleLabel.font.pointSize;
+                y = (30+20)+_titleLabel.font.pointSize;
+                alertViewH -= 10;
             }
             CGFloat msgContentViewheight = [self.delegate heightForMessageContentView];
-            _msgCustomContentView.frame = CGRectMake(28*_scale,y+self.messageContentView.frame.size.height,kalertViewW-56*_scale,msgContentViewheight);
+            _msgCustomContentView.frame = CGRectMake(28*_scale,y+self.messageContentView.frame.size.height, kalertViewW-56*_scale, msgContentViewheight);
             alertViewH += msgContentViewheight;
         }
+        
         
         //按钮操作区frame设置
         self.operationalView.frame = CGRectMake(0,alertViewH-allBtnH,kalertViewW,allBtnH);
@@ -509,18 +514,18 @@
         }
         
         for(UIView* potentialKeyboard in tempWindow.subviews)
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
-                if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
-                    keyboard = potentialKeyboard;
-            }
-            else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
-                if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
-                    keyboard = potentialKeyboard;
-            }
-            else {
-                if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
-                    keyboard = potentialKeyboard;
-            }
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+            if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
+            keyboard = potentialKeyboard;
+        }
+        else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+            if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+            keyboard = potentialKeyboard;
+        }
+        else {
+            if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+            keyboard = potentialKeyboard;
+        }
     }
     return keyboard;
 }
@@ -625,7 +630,7 @@
         _titleLabel = [[UILabel alloc]init];
         _titleLabel.backgroundColor = [UIColor clearColor];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
-        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
+        _titleLabel.font = [UIFont boldSystemFontOfSize:_titleFontSize];
         _titleLabel.textColor = _titleTextColor;
     }
     return _titleLabel;
@@ -705,7 +710,7 @@
 - (void)setTitleFontSize:(CGFloat)titleFontSize {
     if (_titleLabel) {
         _titleFontSize = titleFontSize;
-        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize*_scale];
+        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
         [self configFrame];
     }
 }
@@ -713,14 +718,14 @@
 - (void)setMessageFontSize:(CGFloat)messageFontSize {
     if (_message&&_message.length>0) {
         _messageFontSize = messageFontSize;
-        self.messageContentView.messageLabel.font = [UIFont systemFontOfSize:_messageFontSize*_scale];
+        self.messageContentView.messageLabel.font = [UIFont systemFontOfSize:_messageFontSize];
         [self configFrame];
     }
 }
 
 - (void)setButtonFontSize:(CGFloat)buttonFontSize {
     if (self.otherButtonTitles) {
-        _buttonFontSize = buttonFontSize*_scale;
+        _buttonFontSize = buttonFontSize;
         for (UIButton *btn in _otherButtonTitles) {
             [btn.titleLabel setFont:[UIFont systemFontOfSize:_buttonFontSize]];
         }

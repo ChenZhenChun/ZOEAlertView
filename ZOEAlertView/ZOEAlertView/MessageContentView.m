@@ -59,6 +59,10 @@
         _textField.layer.borderWidth = 0.5;
         _textField.layer.borderColor = [UIColor colorWithRed:207/255.0 green:210/255.0 blue:213/255.0 alpha:1].CGColor;
         _textField.textAlignment = NSTextAlignmentLeft;
+        UIImageView *leftView = [[UIImageView alloc] initWithFrame:CGRectMake(0,0,15,34)];
+        leftView.backgroundColor = [UIColor clearColor];
+        _textField.leftView = leftView;
+        _textField.leftViewMode = UITextFieldViewModeAlways;
         _textField.backgroundColor = [UIColor clearColor];
     }
     return _textField;

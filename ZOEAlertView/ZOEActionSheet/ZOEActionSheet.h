@@ -2,8 +2,8 @@
 //  ZOEActionSheet.h
 //  AiyoyouCocoapods
 //
-//  Created by aiyoyou on 2017/6/7.
-//  Copyright © 2017年 zoenet. All rights reserved.
+//  Created by gulu on 2017/8/7.
+//  Copyright © 2017年 gulu. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -52,7 +52,7 @@
 /**
  获取单前所有actionSheet
  
- @return AllActionSheet
+ @return
  */
 + (NSArray *)getAllActionSheet;
 @end

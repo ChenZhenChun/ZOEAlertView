@@ -9,12 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "ZOEWindow.h"
 
-#define kBtnH (50*_scale)
+#define kBtnH (45*_scale)
 #define kBtnTagAppend 200  //tag从0开始容易和默认的tag冲突，所以额外累加一个参数
-#define ktitleFontSize              (18*_scale)
-#define kbuttonFontSize             (18*_scale)
-#define ktitleTextColor             [UIColor colorWithRed:34/255.0 green:34/255.0 blue:34/255.0 alpha:1]
-#define kbuttonTextColor            [UIColor colorWithRed:0 green:162/255.0 blue:1 alpha:1]
+#define ktitleFontSize              (16)
+#define kbuttonFontSize             (15)
+#define ktitleTextColor             [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1]
+#define kbuttonTextColor            [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1]
 
 typedef NS_ENUM(NSInteger, ZOEStyle) {
     ZOEAlertViewStyleAlert = 0,
