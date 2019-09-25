@@ -212,17 +212,17 @@
         
         //title区域frame设置
         if (_titleLabel) {
-            alertViewH += 30+_titleLabel.font.pointSize;
-            _titleLabel.frame = CGRectMake(15*_scale,30,kalertViewW-30*_scale,_titleLabel.font.pointSize);
+            alertViewH += 20+_titleLabel.font.pointSize;
+            _titleLabel.frame = CGRectMake(15*_scale,20,kalertViewW-30*_scale,_titleLabel.font.pointSize);
         }
         
         //message区域frame设置
         //默认messageContentView模板frame设置
         if (_message&&_message.length>0) {
-            CGFloat y = 30;
-            alertViewH += 30;
+            CGFloat y = 20;
+            alertViewH += 20;
             if (_titleLabel) {
-                y = (30+20)+_titleLabel.font.pointSize;
+                y = (20+15)+_titleLabel.font.pointSize;
                 alertViewH -= 10;
             }
             self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
@@ -262,10 +262,10 @@
             alertViewH += self.messageContentView.frame.size.height;
         }else {
             if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                CGFloat y = 30;
-                alertViewH += 30;
+                CGFloat y = 20;
+                alertViewH += 20;
                 if (_titleLabel) {
-                    y = (30+20)*_scale+_titleLabel.font.pointSize;
+                    y = (20+15)*_scale+_titleLabel.font.pointSize;
                     alertViewH -= 10;
                 }
                 self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,34*_scale);
@@ -279,9 +279,9 @@
         
         if ([self.delegate respondsToSelector:@selector(heightForMessageContentView)]) {
             //代理视图
-            CGFloat y = 30;
+            CGFloat y = 20;
             if (_titleLabel) {
-                y = (30+20)+_titleLabel.font.pointSize;
+                y = (20+15)+_titleLabel.font.pointSize;
                 alertViewH -= 10;
             }
             CGFloat msgContentViewheight = [self.delegate heightForMessageContentView];
@@ -321,7 +321,7 @@
         self.messageContentView.textField.font = [UIFont systemFontOfSize:_messageFontSize];
         self.messageContentView.textField.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,34*_scale);
     }else if (self.alertViewStyle == ZOEAlertViewStyleTextViewInput) {
-        self.messageContentView.textView.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,98*_scale);
+        self.messageContentView.textView.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,88*_scale);
     }
 }
 
@@ -514,18 +514,18 @@
         }
         
         for(UIView* potentialKeyboard in tempWindow.subviews)
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
-            if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
-            keyboard = potentialKeyboard;
-        }
-        else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
-            if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
-            keyboard = potentialKeyboard;
-        }
-        else {
-            if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
-            keyboard = potentialKeyboard;
-        }
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+                if([[potentialKeyboard description] hasPrefix:@"<UILayoutContainerView"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+                if([[potentialKeyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+                    keyboard = potentialKeyboard;
+            }
+            else {
+                if([[potentialKeyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+                    keyboard = potentialKeyboard;
+            }
     }
     return keyboard;
 }
@@ -600,8 +600,8 @@
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
     /**
-    判断输入的字是否是回车，即按下return
-    返回NO，就代表return键值失效，即页面上按下return，不会出现换行，如果为yes，则输入页面会换行
+     判断输入的字是否是回车，即按下return
+     返回NO，就代表return键值失效，即页面上按下return，不会出现换行，如果为yes，则输入页面会换行
      **/
     if ([text isEqualToString:@"\n"]){ //
         [[ZOEWindow shareInstance] endEditing:YES];
@@ -688,7 +688,7 @@
     if (_scale == 0) {
         _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
         if (_scale>1) _scale = 1;
-//        _scale = [UIScreen mainScreen].bounds.size.width/375.0;
+        //        _scale = [UIScreen mainScreen].bounds.size.width/375.0;
     }
     return _scale;
 }
