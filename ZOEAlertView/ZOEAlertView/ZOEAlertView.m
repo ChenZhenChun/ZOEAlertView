@@ -212,18 +212,20 @@
         
         //title区域frame设置
         if (_titleLabel) {
-            alertViewH += 20+_titleLabel.font.pointSize;
-            _titleLabel.frame = CGRectMake(15*_scale,20,kalertViewW-30*_scale,_titleLabel.font.pointSize);
+            alertViewH += 30+_titleLabel.font.pointSize;
+            _titleLabel.frame = CGRectMake(15*_scale,30,kalertViewW-30*_scale,_titleLabel.font.pointSize);
         }
         
         //message区域frame设置
         //默认messageContentView模板frame设置
         if (_message&&_message.length>0) {
-            CGFloat y = 20;
-            alertViewH += 20;
+            CGFloat y = 0;
             if (_titleLabel) {
-                y = (20+15)+_titleLabel.font.pointSize;
-                alertViewH -= 10;
+                y = CGRectGetMaxY(_titleLabel.frame)+20;
+                alertViewH += 20;
+            }else {
+                y = 30;
+                alertViewH += 30;
             }
             self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,0);
             self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
@@ -234,8 +236,10 @@
             if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
                 ||self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
                 textFieldH =44*_scale;
+                alertViewH += 20;
             }else if (_alertViewStyle == ZOEAlertViewStyleTextViewInput) {
-                textFieldH =98*_scale;
+                alertViewH += 20;
+                textFieldH =88*_scale;
             }
             //alertViewH大于屏幕高度-200，那么对这个判断做等法判断出相等时messageContentView的高度
             if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
@@ -262,14 +266,22 @@
             alertViewH += self.messageContentView.frame.size.height;
         }else {
             if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                CGFloat y = 20;
-                alertViewH += 20;
+                CGFloat y = 0;
                 if (_titleLabel) {
-                    y = (20+15)*_scale+_titleLabel.font.pointSize;
-                    alertViewH -= 10;
+                    y = CGRectGetMaxY(_titleLabel.frame)+20;
+                    alertViewH += 20;
+                }else {
+                    y = 30;
+                    alertViewH += 30;
                 }
-                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,34*_scale);
-                [self textFieldConfigByAlertViewStyleWithY:-10*_scale];
+                
+                CGFloat height = 44*_scale;
+                if (self.alertViewStyle == ZOEAlertViewStyleTextViewInput) {
+                    height = 88*_scale;
+                }
+                
+                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,height);
+                [self textFieldConfigByAlertViewStyleWithY:-20*_scale];
                 self.messageContentView.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
                 self.messageContentView.messageLabel.textAlignment = _messageTextAlignment;
                 alertViewH += self.messageContentView.frame.size.height;
@@ -279,10 +291,13 @@
         
         if ([self.delegate respondsToSelector:@selector(heightForMessageContentView)]) {
             //代理视图
-            CGFloat y = 20;
+            CGFloat y = 0;
             if (_titleLabel) {
-                y = (20+15)+_titleLabel.font.pointSize;
-                alertViewH -= 10;
+                y = CGRectGetMaxY(_titleLabel.frame)+20;
+                alertViewH += 20;
+            }else {
+                y = 30;
+                alertViewH += 30;
             }
             CGFloat msgContentViewheight = [self.delegate heightForMessageContentView];
             _msgCustomContentView.frame = CGRectMake(28*_scale,y+self.messageContentView.frame.size.height, kalertViewW-56*_scale, msgContentViewheight);
@@ -314,14 +329,14 @@
         self.messageContentView.textField.secureTextEntry = NO;
         self.messageContentView.textField.placeholder = _textFieldPlaceholder;
         self.messageContentView.textField.font = [UIFont systemFontOfSize:_messageFontSize];
-        self.messageContentView.textField.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,34*_scale);
+        self.messageContentView.textField.frame = CGRectMake(0,y+20*_scale,kalertViewW-56*_scale,44*_scale);
     }else if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput) {
         self.messageContentView.textField.secureTextEntry = YES;
         self.messageContentView.textField.placeholder = _textFieldPlaceholder;
         self.messageContentView.textField.font = [UIFont systemFontOfSize:_messageFontSize];
-        self.messageContentView.textField.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,34*_scale);
+        self.messageContentView.textField.frame = CGRectMake(0,y+20*_scale,kalertViewW-56*_scale,44*_scale);
     }else if (self.alertViewStyle == ZOEAlertViewStyleTextViewInput) {
-        self.messageContentView.textView.frame = CGRectMake(0,y+10*_scale,kalertViewW-56*_scale,88*_scale);
+        self.messageContentView.textView.frame = CGRectMake(0,y+20*_scale,kalertViewW-56*_scale,88*_scale);
     }
 }
 
