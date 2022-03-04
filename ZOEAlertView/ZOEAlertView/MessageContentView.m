@@ -32,7 +32,10 @@
 }
 
 - (NSMutableAttributedString *)attrStrWithMessage:(NSString *)message {
-    if ([message containsString:@"<html"]&&[message containsString:@"</html"]) {
+    if (([message containsString:@"<html"]&&[message containsString:@"</html"])
+        ||([message containsString:@"<body"]&&[message containsString:@"</body"])
+        ||([message containsString:@"<div"]&&[message containsString:@"</div"])
+        ||([message containsString:@"<p"]&&[message containsString:@"</p"])) {
         self.attrStr = [self.attrStr initWithData:[message dataUsingEncoding:NSUnicodeStringEncoding]
                                           options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType}
                                documentAttributes:nil error:nil];
