@@ -14,6 +14,18 @@
 
 @implementation MessageContentView
 
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        self.showsHorizontalScrollIndicator = NO;
+        self.showsVerticalScrollIndicator = NO;
+        self.pagingEnabled = NO;
+        self.userInteractionEnabled = YES;
+        self.bounces = NO;
+    }
+    return self;
+}
+
 //消息详细
 - (UILabel *)messageLabel {
     if (!_messageLabel) {

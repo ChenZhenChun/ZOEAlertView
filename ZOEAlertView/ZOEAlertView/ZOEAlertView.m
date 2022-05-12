@@ -218,6 +218,8 @@
         
         //message区域frame设置
         //默认messageContentView模板frame设置
+        self.messageContentView.contentSize = CGSizeMake(kalertViewW-56*_scale, 0);
+        self.messageContentView.bounces = NO;
         if (_message&&_message.length>0) {
             CGFloat y = 0;
             if (_titleLabel) {
@@ -233,28 +235,30 @@
             self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             [self.messageContentView.messageLabel sizeToFit];
             CGFloat textFieldH = 0;
-            CGFloat messageLBottom = 0;
             if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
                 ||self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
                 textFieldH =44*_scale;
-                messageLBottom = 20;
+                alertViewH += 20;
             }else if (_alertViewStyle == ZOEAlertViewStyleTextViewInput) {
-                messageLBottom = 20;
+                alertViewH += 20;
                 textFieldH =88*_scale;
             }
             //alertViewH大于屏幕高度-200，那么对这个判断做等法判断出相等时messageContentView的高度
-            if (self.messageContentView.messageLabel.frame.size.height+messageLBottom+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
+            if (self.messageContentView.messageLabel.frame.size.height+alertViewH+textFieldH>self.frame.size.height-200*_scale) {
                 self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH);
                 if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH-messageLBottom);
+                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-textFieldH);
                     [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
                 }else {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.frame.size.height-200*_scale-alertViewH-messageLBottom);
+                    CGFloat labelH = self.messageContentView.messageLabel.frame.size.height;
+                    self.messageContentView.contentSize = CGSizeMake(kalertViewW-56*_scale, labelH);
+                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,labelH);
+                    self.messageContentView.bounces = YES;
                 }
             }else {
-                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height+messageLBottom+textFieldH);
+                self.messageContentView.frame = CGRectMake(28*_scale,y,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height+textFieldH);
                 if (self.alertViewStyle != ZOEAlertViewStyleDefault) {
-                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.frame.size.height-textFieldH-messageLBottom);
+                    self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.frame.size.height-textFieldH);
                     [self textFieldConfigByAlertViewStyleWithY:CGRectGetMaxY(self.messageContentView.messageLabel.frame)];
                 }else {
                     self.messageContentView.messageLabel.frame =CGRectMake(0,0,kalertViewW-56*_scale,self.messageContentView.messageLabel.frame.size.height);
@@ -726,7 +730,7 @@
 - (void)setTitleFontSize:(CGFloat)titleFontSize {
     if (_titleLabel) {
         _titleFontSize = titleFontSize;
-        _titleLabel.font = [UIFont systemFontOfSize:_titleFontSize];
+        _titleLabel.font = [UIFont boldSystemFontOfSize:_titleFontSize];
         [self configFrame];
     }
 }

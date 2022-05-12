@@ -14,7 +14,7 @@
   MessageContentView宽度 = （300-56）*_scale;
  _scale = ([UIScreen mainScreen].bounds.size.height>480?[UIScreen mainScreen].bounds.size.height/667.0:0.851574);
  */
-@interface MessageContentView : UIView
+@interface MessageContentView : UIScrollView
 @property (nonatomic,strong) UILabel                    *messageLabel;
 @property (nonatomic,strong) UITextField                *textField;
 @property (nonatomic,strong) ZOEPlaceholderTextView     *textView;
