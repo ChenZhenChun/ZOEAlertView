@@ -226,6 +226,8 @@
             [self.messageContentView attrStrWithMessage:_message];
             self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             [self.messageContentView.messageLabel sizeToFit];
+            //UILabel调用sizeToFit后需要重新设置一下frame，不然文字居中会设置无效。
+            self.messageContentView.messageLabel.frame = CGRectMake(0, 0, kalertViewW-56*_scale, self.messageContentView.messageLabel.frame.size.height);
             maxH += self.messageContentView.messageLabel.frame.size.height;
             if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
                 ||self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
