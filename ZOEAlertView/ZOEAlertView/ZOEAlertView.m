@@ -222,12 +222,11 @@
         if (_message&&_message.length>0) {
             self.messageContentView.frame = CGRectMake(28*_scale,maxH,kalertViewW-56*_scale,0);
             self.messageContentView.messageLabel.frame = self.messageContentView.bounds;
+            self.messageContentView.messageLabel.preferredMaxLayoutWidth = kalertViewW-56*_scale;
             [self.messageContentView attrStrWithMessage:_message];
             self.messageContentView.messageLabel.font           = [UIFont systemFontOfSize:_messageFontSize];
             [self.messageContentView.messageLabel sizeToFit];
-            CGRect frame = [self.messageContentView.messageLabel.attributedText boundingRectWithSize:CGSizeMake(kalertViewW-56*_scale, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin context:nil];
-            self.messageContentView.messageLabel.frame = CGRectMake(0,0, kalertViewW-56*_scale, frame.size.height);
-            maxH += frame.size.height;
+            maxH += self.messageContentView.messageLabel.frame.size.height;
             if (self.alertViewStyle == ZOEAlertViewStyleSecureTextInput
                 ||self.alertViewStyle == ZOEAlertViewStylePlainTextInput) {
                 maxH += (20+44*_scale);
