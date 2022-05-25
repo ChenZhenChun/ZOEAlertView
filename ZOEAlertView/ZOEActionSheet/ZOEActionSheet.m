@@ -37,7 +37,7 @@
     if (self) {
         //默认参数初始化
         [self scale];
-        self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.3];
+        self.backgroundColor    = [UIColor colorWithWhite:0 alpha:0.7];
         _titleFontSize          = ktitleFontSize;
         _buttonFontSize         = kbuttonFontSize;
         _titleTextColor         = ktitleTextColor;
@@ -61,7 +61,7 @@
             _cancelButton = [ZOEActionSheet createButton];
             _cancelButton.backgroundColor = [UIColor whiteColor];
             _cancelButton.clipsToBounds = YES;
-            _cancelButton.layer.cornerRadius = 10*_scale;
+            _cancelButton.layer.cornerRadius = 5*_scale;
             [_cancelButton setTitle:_cancelButtonTitle forState:UIControlStateNormal];
             [_cancelButton addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchUpInside];
             [_cancelButton setTitleColor:_buttonTextColor forState:UIControlStateNormal];
@@ -317,7 +317,7 @@
     if (!_actionSheetContentView) {
         _actionSheetContentView = [[UIView alloc]init];
         _actionSheetContentView.clipsToBounds = YES;
-        _actionSheetContentView.layer.cornerRadius = 10*_scale;
+        _actionSheetContentView.layer.cornerRadius = 5*_scale;
         _actionSheetContentView.backgroundColor = [UIColor clearColor];
     }
     return _actionSheetContentView;
@@ -327,7 +327,7 @@
     if (!_contentView) {
         _contentView = [[UIView alloc]init];
         _contentView.clipsToBounds = YES;
-        _contentView.layer.cornerRadius = 10*_scale;
+        _contentView.layer.cornerRadius = 5*_scale;
         _contentView.backgroundColor = [UIColor whiteColor];
     }
     return _contentView;
